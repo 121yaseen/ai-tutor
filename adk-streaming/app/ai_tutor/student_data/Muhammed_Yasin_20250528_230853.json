@@ -1,0 +1,37 @@
+{
+  "personal_info": {
+    "name": "Muhammed Yasin",
+    "age": 25,
+    "registration_date": "2025-05-28T23:08:53.780122",
+    "student_id": "Muhammed_Yasin_20250528_230853"
+  },
+  "assessments": [
+    {
+      "assessment_date": "2025-05-28T23:13:05.650398",
+      "assessment_type": "IELTS Speaking Test",
+      "scores": {
+        "overall_band": 6.5,
+        "fluency_coherence": 4,
+        "lexical_resource": 8,
+        "grammatical_range_accuracy": 7.5,
+        "pronunciation": 6
+      },
+      "evaluation": {
+        "strengths": "Good vocabulary and grammar",
+        "weaknesses": "Limited fluency and coherence",
+        "improvement_suggestions": "Practice speaking at length and structuring responses logically",
+        "detailed_feedback": "The student demonstrates strong lexical and grammatical skills but needs to improve fluency and coherence by practicing longer responses and using linking words."
+      },
+      "examiner": "AI Tutor IELTS Screener",
+      "test_duration_minutes": 15
+    }
+  ],
+  "progress_history": [
+    {
+      "date": "2025-05-28T23:13:05.650940",
+      "band_score": 6.5,
+      "key_areas_improved": "Good vocabulary and grammar",
+      "areas_to_focus": "Limited fluency and coherence"
+    }
+  ]
+}
