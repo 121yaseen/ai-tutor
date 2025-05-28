@@ -44,3 +44,6 @@ next-env.d.ts
 
 venv/
 
+temp_tests/
+
+study_materials/
