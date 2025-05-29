@@ -1,0 +1,40 @@
+body {
+    font-family: sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+.container {
+    text-align: center;
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+#playStopButton {
+    padding: 15px 30px;
+    font-size: 1.2em;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    background-color: #4CAF50; /* Green for Play */
+    color: white;
+    transition: background-color 0.3s ease;
+}
+
+#playStopButton.stop {
+    background-color: #f44336; /* Red for Stop */
+}
+
+#statusMessage {
+    margin-top: 20px;
+    font-size: 0.9em;
+    color: #666;
+    min-height: 1.2em; /* Reserve space to prevent layout shifts */
+} 

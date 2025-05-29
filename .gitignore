@@ -42,8 +42,26 @@ next-env.d.ts
 
 .cursorrules
 
-venv/
+.venv/
 
 temp_tests/
 
-study_materials/
+study_materials
+
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+**/__pycache__/**
+**/__pycache__/
+**/__pycache__
+**/__pycache__/
+**/__pycache__/
