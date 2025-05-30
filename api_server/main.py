@@ -143,41 +143,61 @@ async def root():
 @app.get("/events/{user_id}")
 async def sse_endpoint(user_id: int, is_audio: str = "false"):
     """SSE endpoint for agent to client communication"""
+    print(f"[SSE /events/{user_id}]: Connection attempt received. is_audio={is_audio}")
 
-    # Start agent session
-    user_id_str = str(user_id)
-    live_events, live_request_queue = await start_agent_session(user_id_str, is_audio == "true")
+    try:
+        # Start agent session
+        user_id_str = str(user_id)
+        print(f"[SSE /events/{user_id_str}]: Starting agent session...")
+        live_events, live_request_queue = await start_agent_session(user_id_str, is_audio == "true")
+        print(f"[SSE /events/{user_id_str}]: Agent session started. live_events and live_request_queue created.")
 
-    # Store the request queue for this user
-    active_sessions[user_id_str] = live_request_queue
+        # Store the request queue for this user
+        active_sessions[user_id_str] = live_request_queue
+        print(f"[SSE /events/{user_id_str}]: live_request_queue stored in active_sessions.")
 
-    print(f"Client #{user_id} connected via SSE, audio mode: {is_audio}")
+        print(f"Client #{user_id} connected via SSE, audio mode: {is_audio}")
 
-    def cleanup():
-        live_request_queue.close()
-        if user_id_str in active_sessions:
-            del active_sessions[user_id_str]
-        print(f"Client #{user_id} disconnected from SSE")
+        def cleanup():
+            print(f"[SSE /events/{user_id_str}]: Cleanup called.")
+            live_request_queue.close()
+            if user_id_str in active_sessions:
+                del active_sessions[user_id_str]
+            print(f"Client #{user_id} disconnected from SSE")
 
-    async def event_generator():
-        try:
-            async for data in agent_to_client_sse(live_events):
-                yield data
-        except Exception as e:
-            print(f"Error in SSE stream: {e}")
-        finally:
-            cleanup()
+        async def event_generator():
+            print(f"[SSE /events/{user_id_str}]: Event generator started.")
+            try:
+                # Send an initial connected message
+                yield f"data: {json.dumps({'message': 'SSE connection established', 'user_id': user_id_str})}\\n\\n"
+                print(f"[SSE /events/{user_id_str}]: Sent initial 'connected' message.")
 
-    return StreamingResponse(
-        event_generator(),
-        media_type="text/event-stream",
-        headers={
-            "Cache-Control": "no-cache",
-            "Connection": "keep-alive",
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Headers": "Cache-Control"
-        }
-    )
+                async for data in agent_to_client_sse(live_events):
+                    print(f"[SSE /events/{user_id_str}]: Yielding data: {data[:100]}...")
+                    yield data
+                print(f"[SSE /events/{user_id_str}]: Finished iterating agent_to_client_sse.")
+            except Exception as e:
+                print(f"[SSE /events/{user_id_str}]: Error in SSE stream event_generator: {e}", repr(e))
+            finally:
+                print(f"[SSE /events/{user_id_str}]: Event generator finally block. Calling cleanup.")
+                cleanup()
+            print(f"[SSE /events/{user_id_str}]: Event generator finished.")
+
+        return StreamingResponse(
+            event_generator(),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers": "Cache-Control"
+            }
+        )
+    except Exception as e:
+        print(f"[SSE /events/{user_id}]: CRITICAL ERROR in sse_endpoint before returning StreamingResponse: {e}", repr(e))
+        # Optionally, return an error response if appropriate before streaming starts
+        # For now, just logging, as it might be hard to return HTTP error if headers already sent.
+        # raise # or handle gracefully
 
 
 @app.post("/send/{user_id}")
