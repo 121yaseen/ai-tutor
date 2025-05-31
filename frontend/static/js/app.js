@@ -155,12 +155,31 @@ function startAudio() {
 
 // Start the audio only when the user clicked the button
 const startAudioButton = document.getElementById("startAudioButton");
+const micBtn = document.getElementById("micBtn");
+const stopBtn = document.getElementById("stopBtn");
+
+micBtn.addEventListener("click", function() {
+  startAudioButton.click();
+});
+
+// Show/hide stop button and mic button
+window.showStopButton = function() {
+  stopBtn.style.display = '';
+  micBtn.style.display = 'none';
+};
+window.hideStopButton = function() {
+  stopBtn.style.display = 'none';
+  micBtn.style.display = '';
+};
+
+// When audio starts, show stop button
 startAudioButton.addEventListener("click", () => {
   startAudioButton.disabled = true;
   startAudio();
   is_audio = true;
   eventSource.close(); // close current connection
   connectSSE(); // reconnect with the audio mode
+  window.showStopButton();
 });
 
 // Audio recorder handler
@@ -183,4 +202,17 @@ function arrayBufferToBase64(buffer) {
   }
   return window.btoa(binary);
 }
+
+// Stop session logic
+stopBtn.addEventListener("click", () => {
+  // Stop audio input/output if possible
+  if (window.audioRecorderNode && window.audioRecorderNode.port) {
+    try { window.audioRecorderNode.port.postMessage({ command: 'stop' }); } catch (e) {}
+  }
+  if (window.audioPlayerNode && window.audioPlayerNode.port) {
+    try { window.audioPlayerNode.port.postMessage({ command: 'stop' }); } catch (e) {}
+  }
+  // Optionally, close/reconnect SSE or reset state here
+  window.hideStopButton();
+});
 });

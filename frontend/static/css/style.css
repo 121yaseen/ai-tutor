@@ -77,3 +77,23 @@ body {
     max-width: 90vw;
     word-break: break-word;
 }
+.stop-btn {
+    background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+    border: none;
+    border-radius: 50%;
+    width: 72px;
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 24px 6px #ff416c;
+    cursor: pointer;
+    margin-bottom: 32px;
+    transition: box-shadow 0.2s;
+}
+
+.stop-btn:active,
+.stop-btn:focus {
+    box-shadow: 0 0 40px 12px #ff4b2b;
+    outline: none;
+}
