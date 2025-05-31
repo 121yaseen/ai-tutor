@@ -2,6 +2,10 @@
  * app.js: JS code for the adk-streaming sample app.
  */
 
+import { startAudioPlayerWorklet } from "./audio-player.js";
+import { startAudioRecorderWorklet } from "./audio-recorder.js";
+
+document.addEventListener("DOMContentLoaded", () => {
 /**
  * SSE (Server-Sent Events) handling
  */
@@ -16,9 +20,7 @@ let eventSource = null;
 let is_audio = false;
 
 // Get DOM elements
-const messageForm = document.getElementById("messageForm");
-const messageInput = document.getElementById("message");
-const messagesDiv = document.getElementById("messages");
+const conversationDiv = document.getElementById("conversation");
 let currentMessageId = null;
 
 // SSE handlers
@@ -30,11 +32,7 @@ function connectSSE() {
   eventSource.onopen = function () {
     // Connection opened messages
     console.log("SSE connection opened.");
-    document.getElementById("messages").textContent = "Connection opened";
-
-    // Enable the Send button
-    document.getElementById("sendButton").disabled = false;
-    addSubmitHandler();
+    if (conversationDiv) conversationDiv.textContent = "Connection opened";
   };
 
   // Handle incoming messages
@@ -48,7 +46,6 @@ function connectSSE() {
       console.log("[AGENT TO CLIENT] ", message_from_server);
 
       // Check if the turn is complete
-      // if turn complete, add new message
       if (
         message_from_server.turn_complete &&
         message_from_server.turn_complete == true
@@ -69,22 +66,19 @@ function connectSSE() {
           currentMessageId = Math.random().toString(36).substring(7);
           const message = document.createElement("p");
           message.id = currentMessageId;
-          // Append the message element to the messagesDiv
-          messagesDiv.appendChild(message);
+          if (conversationDiv) conversationDiv.appendChild(message);
         }
 
         // Add message text to the existing message element
         const message = document.getElementById(currentMessageId);
         message.textContent += message_from_server.data;
 
-        // Scroll down to the bottom of the messagesDiv
-        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        // Scroll down to the bottom of the conversationDiv
+        if (conversationDiv) conversationDiv.scrollTop = conversationDiv.scrollHeight;
       }
     } catch (e) {
       console.error("Error parsing JSON from SSE:", e);
       console.error("Offending SSE data string:", event.data);
-      // Optionally, handle the error more gracefully, e.g., by skipping the message
-      // or attempting to sanitize the string if a common pattern of corruption is identified.
       return; // Stop processing this malformed message
     }
   };
@@ -92,8 +86,7 @@ function connectSSE() {
   // Handle connection close
   eventSource.onerror = function (event) {
     console.log("SSE connection error or closed.");
-    document.getElementById("sendButton").disabled = true;
-    document.getElementById("messages").textContent = "Connection closed";
+    if (conversationDiv) conversationDiv.textContent = "Connection closed";
     eventSource.close();
     setTimeout(function () {
       console.log("Reconnecting...");
@@ -102,26 +95,6 @@ function connectSSE() {
   };
 }
 connectSSE();
-
-// Add submit handler to the form
-function addSubmitHandler() {
-  messageForm.onsubmit = function (e) {
-    e.preventDefault();
-    const message = messageInput.value;
-    if (message) {
-      const p = document.createElement("p");
-      p.textContent = "> " + message;
-      messagesDiv.appendChild(p);
-      messageInput.value = "";
-      sendMessage({
-        mime_type: "text/plain",
-        data: message,
-      });
-      console.log("[CLIENT TO AGENT] " + message);
-    }
-    return false;
-  };
-}
 
 // Send a message to the server via HTTP POST
 async function sendMessage(message) {
@@ -163,10 +136,6 @@ let audioRecorderNode;
 let audioRecorderContext;
 let micStream;
 
-// Import the audio worklets
-import { startAudioPlayerWorklet } from "./audio-player.js";
-import { startAudioRecorderWorklet } from "./audio-recorder.js";
-
 // Start audio
 function startAudio() {
   // Start audio output
@@ -185,7 +154,6 @@ function startAudio() {
 }
 
 // Start the audio only when the user clicked the button
-// (due to the gesture requirement for the Web Audio API)
 const startAudioButton = document.getElementById("startAudioButton");
 startAudioButton.addEventListener("click", () => {
   startAudioButton.disabled = true;
@@ -215,3 +183,4 @@ function arrayBufferToBase64(buffer) {
   }
   return window.btoa(binary);
 }
+});
