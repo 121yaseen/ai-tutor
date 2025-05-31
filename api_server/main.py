@@ -1,6 +1,7 @@
 import os
 import json
 import base64
+import asyncio
 
 from pathlib import Path
 from dotenv import load_dotenv
@@ -171,6 +172,7 @@ async def sse_endpoint(user_id: int, is_audio: str = "false"):
                 # Send an initial connected message
                 yield f"data: {json.dumps({'message': 'SSE connection established', 'user_id': user_id_str})}\\n\\n"
                 print(f"[SSE /events/{user_id_str}]: Sent initial 'connected' message.")
+                await asyncio.sleep(0)
 
                 async for data in agent_to_client_sse(live_events):
                     print(f"[SSE /events/{user_id_str}]: Yielding data: {data[:100]}...")

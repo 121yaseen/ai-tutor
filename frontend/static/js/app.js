@@ -39,42 +39,53 @@ function connectSSE() {
 
   // Handle incoming messages
   eventSource.onmessage = function (event) {
+    // Log raw event data before parsing
+    console.log("[SSE RAW DATA]:", event.data);
+
     // Parse the incoming message
-    const message_from_server = JSON.parse(event.data);
-    console.log("[AGENT TO CLIENT] ", message_from_server);
+    try {
+      const message_from_server = JSON.parse(event.data);
+      console.log("[AGENT TO CLIENT] ", message_from_server);
 
-    // Check if the turn is complete
-    // if turn complete, add new message
-    if (
-      message_from_server.turn_complete &&
-      message_from_server.turn_complete == true
-    ) {
-      currentMessageId = null;
-      return;
-    }
-
-    // If it's audio, play it
-    if (message_from_server.mime_type == "audio/pcm" && audioPlayerNode) {
-      audioPlayerNode.port.postMessage(base64ToArray(message_from_server.data));
-    }
-
-    // If it's a text, print it
-    if (message_from_server.mime_type == "text/plain") {
-      // add a new message for a new turn
-      if (currentMessageId == null) {
-        currentMessageId = Math.random().toString(36).substring(7);
-        const message = document.createElement("p");
-        message.id = currentMessageId;
-        // Append the message element to the messagesDiv
-        messagesDiv.appendChild(message);
+      // Check if the turn is complete
+      // if turn complete, add new message
+      if (
+        message_from_server.turn_complete &&
+        message_from_server.turn_complete == true
+      ) {
+        currentMessageId = null;
+        return;
       }
 
-      // Add message text to the existing message element
-      const message = document.getElementById(currentMessageId);
-      message.textContent += message_from_server.data;
+      // If it's audio, play it
+      if (message_from_server.mime_type == "audio/pcm" && audioPlayerNode) {
+        audioPlayerNode.port.postMessage(base64ToArray(message_from_server.data));
+      }
 
-      // Scroll down to the bottom of the messagesDiv
-      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      // If it's a text, print it
+      if (message_from_server.mime_type == "text/plain") {
+        // add a new message for a new turn
+        if (currentMessageId == null) {
+          currentMessageId = Math.random().toString(36).substring(7);
+          const message = document.createElement("p");
+          message.id = currentMessageId;
+          // Append the message element to the messagesDiv
+          messagesDiv.appendChild(message);
+        }
+
+        // Add message text to the existing message element
+        const message = document.getElementById(currentMessageId);
+        message.textContent += message_from_server.data;
+
+        // Scroll down to the bottom of the messagesDiv
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      }
+    } catch (e) {
+      console.error("Error parsing JSON from SSE:", e);
+      console.error("Offending SSE data string:", event.data);
+      // Optionally, handle the error more gracefully, e.g., by skipping the message
+      // or attempting to sanitize the string if a common pattern of corruption is identified.
+      return; // Stop processing this malformed message
     }
   };
 
