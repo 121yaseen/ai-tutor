@@ -1,0 +1,79 @@
+body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background: radial-gradient(ellipse at center, #1a1a2e 0%, #0f3460 100%);
+    font-family: 'Montserrat', sans-serif;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.container {
+    text-align: center;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.voice-wave {
+    width: 260px;
+    height: 260px;
+    margin: 0 auto 32px auto;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 50%;
+    box-shadow: 0 0 60px 10px #7f53ac, 0 0 120px 40px #647dee;
+    position: relative;
+    overflow: hidden;
+    /* Animation will be added via JS or SVG */
+}
+
+.greeting {
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    letter-spacing: 1px;
+    text-shadow: 0 0 8px #7f53ac;
+}
+
+.cta {
+    font-size: 1.3rem;
+    margin-bottom: 32px;
+    color: #fff;
+    opacity: 0.85;
+    letter-spacing: 0.5px;
+}
+
+.mic-btn {
+    background: linear-gradient(135deg, #7f53ac 0%, #647dee 100%);
+    border: none;
+    border-radius: 50%;
+    width: 72px;
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 24px 6px #7f53ac;
+    cursor: pointer;
+    margin-bottom: 32px;
+    transition: box-shadow 0.2s;
+}
+
+.mic-btn:active,
+.mic-btn:focus {
+    box-shadow: 0 0 40px 12px #647dee;
+    outline: none;
+}
+
+.conversation {
+    font-size: 1.1rem;
+    color: #b2b2d6;
+    margin-top: 24px;
+    min-height: 32px;
+    max-width: 90vw;
+    word-break: break-word;
+}

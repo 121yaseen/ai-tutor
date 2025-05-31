@@ -170,7 +170,7 @@ async def sse_endpoint(user_id: int, is_audio: str = "false"):
             print(f"[SSE /events/{user_id_str}]: Event generator started.")
             try:
                 # Send an initial connected message
-                yield f"data: {json.dumps({'message': 'SSE connection established', 'user_id': user_id_str})}\\n\\n"
+                yield f"data: {json.dumps({'message': 'SSE connection established', 'user_id': user_id_str})}\n\n"
                 print(f"[SSE /events/{user_id_str}]: Sent initial 'connected' message.")
                 await asyncio.sleep(0)
 
@@ -183,7 +183,7 @@ async def sse_endpoint(user_id: int, is_audio: str = "false"):
             finally:
                 print(f"[SSE /events/{user_id_str}]: Event generator finally block. Calling cleanup.")
                 cleanup()
-            print(f"[SSE /events/{user_id_str}]: Event generator finished.")
+                print(f"[SSE /events/{user_id_str}]: Event generator finished.")
 
         return StreamingResponse(
             event_generator(),
