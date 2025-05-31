@@ -153,6 +153,7 @@ micBtn.addEventListener("click", function() {
   startAudio();
   connectSSE();
   window.showStopButton();
+  if (window.setVoiceWaveActive) window.setVoiceWaveActive(true);
 });
 
 // Stop session logic
@@ -191,6 +192,7 @@ stopBtn.addEventListener("click", () => {
   is_audio = false;
   currentMessageId = null;
   if (conversationDiv) conversationDiv.textContent = '';
+  if (window.setVoiceWaveActive) window.setVoiceWaveActive(false);
 });
 
 function audioRecorderHandler(pcmData) {
