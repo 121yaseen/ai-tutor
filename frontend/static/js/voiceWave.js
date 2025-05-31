@@ -19,25 +19,37 @@ const waveColors = [
   'rgba(255,255,255,0.08)'
 ];
 
+let isActive = false;
+
+window.setVoiceWaveActive = function(active) {
+  isActive = !!active;
+};
+
 function drawWave(time, waveIndex) {
   ctx.save();
   ctx.beginPath();
   const points = 64;
   const angleStep = (Math.PI * 2) / points;
-  const radiusMod = 10 + waveIndex * 8;
+  const baseMod = isActive ? 18 : 10;
+  const radiusMod = baseMod + waveIndex * (isActive ? 12 : 8);
   for (let i = 0; i <= points; i++) {
     const angle = i * angleStep;
-    const wave = Math.sin(angle * 3 + time * 1.2 + waveIndex * 1.5) * radiusMod;
-    const r = baseRadius + wave + waveIndex * 12 + Math.sin(time + waveIndex) * 4;
+    const wave = Math.sin(angle * 3 + time * (isActive ? 2.2 : 1.2) + waveIndex * 1.5) * radiusMod * (isActive ? 1.2 : 1);
+    const r = baseRadius + wave + waveIndex * 12 + Math.sin(time + waveIndex) * (isActive ? 8 : 4);
     const x = centerX + Math.cos(angle) * r;
     const y = centerY + Math.sin(angle) * r;
     if (i === 0) ctx.moveTo(x, y);
     else ctx.lineTo(x, y);
   }
   ctx.closePath();
-  ctx.shadowColor = waveColors[waveIndex];
+  let color = waveColors[waveIndex];
+  if (isActive && waveIndex === 0) {
+    const pulse = 0.5 + 0.5 * Math.sin(time * 2);
+    color = `rgba(255, 99, 255, ${0.4 + 0.3 * pulse})`;
+  }
+  ctx.shadowColor = color;
   ctx.shadowBlur = 24 - waveIndex * 6;
-  ctx.strokeStyle = waveColors[waveIndex];
+  ctx.strokeStyle = color;
   ctx.lineWidth = 2 + (waveCount - waveIndex);
   ctx.stroke();
   ctx.restore();
