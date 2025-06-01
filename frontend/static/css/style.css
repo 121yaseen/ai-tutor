@@ -24,9 +24,9 @@ body {
     width: 260px;
     height: 260px;
     margin: 0 auto 32px auto;
-    background: rgba(255, 255, 255, 0.05);
+    /* background: rgba(255, 255, 255, 0.05); */ /* Removed for better blending */
     border-radius: 50%;
-    box-shadow: 0 0 60px 10px #7f53ac, 0 0 120px 40px #647dee;
+    /* box-shadow: 0 0 60px 10px #7f53ac, 0 0 120px 40px #647dee; */ /* Removed for softer, canvas-driven glow */
     position: relative;
     overflow: hidden;
     /* Animation will be added via JS or SVG */
