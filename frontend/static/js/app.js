@@ -6,6 +6,18 @@ import { startAudioPlayerWorklet } from "./audio-player.js";
 import { startAudioRecorderWorklet, stopMicrophone } from "./audio-recorder.js";
 
 document.addEventListener("DOMContentLoaded", () => {
+  // Set greeting based on user's local time
+  const greetingDiv = document.querySelector('.greeting');
+  if (greetingDiv) {
+    const hour = new Date().getHours();
+    let greeting = '';
+    if (hour < 5) greeting = 'Good Night';
+    else if (hour < 12) greeting = 'Good Morning';
+    else if (hour < 18) greeting = 'Good Afternoon';
+    else greeting = 'Good Evening';
+    greetingDiv.textContent = greeting;
+  }
+
 /**
  * SSE (Server-Sent Events) handling
  */

@@ -61,6 +61,11 @@ async def start_agent_session(user_id, is_audio=False):
         live_request_queue=live_request_queue,
         run_config=run_config,
     )
+
+    # Send an initial empty message to trigger agent greeting
+    initial_content = Content(role="user", parts=[Part.from_text(text="Hi")])
+    live_request_queue.send_content(content=initial_content)
+
     return live_events, live_request_queue
 
 
