@@ -79,7 +79,7 @@ async def agent_to_client_sse(live_events):
                 "interrupted": event.interrupted,
             }
             yield f"data: {json.dumps(message)}\n\n"
-            print(f"[AGENT TO CLIENT]: {message}")
+            #print(f"[AGENT TO CLIENT]: {message}")
             continue
 
         # Read the Content and its first Part
@@ -99,7 +99,7 @@ async def agent_to_client_sse(live_events):
                     "data": base64.b64encode(audio_data).decode("ascii")
                 }
                 yield f"data: {json.dumps(message)}\n\n"
-                print(f"[AGENT TO CLIENT]: audio/pcm: {len(audio_data)} bytes.")
+                #print(f"[AGENT TO CLIENT]: audio/pcm: {len(audio_data)} bytes.")
                 continue
 
         # If it's text and a parial text, send it
@@ -109,7 +109,7 @@ async def agent_to_client_sse(live_events):
                 "data": part.text
             }
             yield f"data: {json.dumps(message)}\n\n"
-            print(f"[AGENT TO CLIENT]: text/plain: {message}")
+            #print(f"[AGENT TO CLIENT]: text/plain: {message}")
 
 
 #
@@ -227,11 +227,11 @@ async def send_message_endpoint(user_id: int, request: Request):
     if mime_type == "text/plain":
         content = Content(role="user", parts=[Part.from_text(text=data)])
         live_request_queue.send_content(content=content)
-        print(f"[CLIENT TO AGENT]: {data}")
+        #print(f"[CLIENT TO AGENT]: {data}")
     elif mime_type == "audio/pcm":
         decoded_data = base64.b64decode(data)
         live_request_queue.send_realtime(Blob(data=decoded_data, mime_type=mime_type))
-        print(f"[CLIENT TO AGENT]: audio/pcm: {len(decoded_data)} bytes")
+        #print(f"[CLIENT TO AGENT]: audio/pcm: {len(decoded_data)} bytes")
     else:
         return {"error": f"Mime type not supported: {mime_type}"}
 

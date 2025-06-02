@@ -49,10 +49,10 @@ function connectSSE() {
   };
 
   eventSource.onmessage = function (event) {
-    console.log("[SSE RAW DATA]:", event.data);
+    //console.log("[SSE RAW DATA]:", event.data);
     try {
       const message_from_server = JSON.parse(event.data);
-      console.log("[AGENT TO CLIENT] ", message_from_server);
+      //console.log("[AGENT TO CLIENT] ", message_from_server);
       if (
         message_from_server.turn_complete &&
         message_from_server.turn_complete == true
@@ -212,7 +212,7 @@ function audioRecorderHandler(pcmData) {
     mime_type: "audio/pcm",
     data: arrayBufferToBase64(pcmData),
   });
-  console.log("[CLIENT TO AGENT] sent %s bytes", pcmData.byteLength);
+  //console.log("[CLIENT TO AGENT] sent %s bytes", pcmData.byteLength);
 }
 
 function arrayBufferToBase64(buffer) {
