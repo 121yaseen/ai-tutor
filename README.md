@@ -96,3 +96,40 @@ gunicorn -w 4 -k uvicorn.workers.UvicornWorker api_server.main:app
 ```
 
 This command runs 4 worker processes, each using Uvicorn as the ASGI server.
+
+## Firestore Setup (Database)
+
+This project now uses Google Firestore for student and assessment data. You can switch between local development (using the Firestore Emulator) and GCP Firestore using environment variables.
+
+### 1. Install Firestore Python Client
+
+```
+pip install google-cloud-firestore
+```
+
+### 2. Local Development (Firestore Emulator)
+
+- Install the Google Cloud SDK: https://cloud.google.com/sdk/docs/install
+- Start the Firestore emulator:
+
+```
+gcloud beta emulators firestore start --host-port=localhost:8080
+```
+- In a separate terminal, set the environment variable:
+
+```
+export FIRESTORE_EMULATOR_HOST=localhost:8080
+```
+- The app will now use the local emulator for all database operations.
+
+### 3. GCP Deployment (Production)
+
+- Deploy your app to GCP and ensure it has access to Firestore.
+- Unset the `FIRESTORE_EMULATOR_HOST` variable (or do not set it).
+- Set up authentication using a service account or default credentials.
+- The app will automatically use GCP Firestore.
+
+### 4. Switching Environments
+
+- **Local:** Set `FIRESTORE_EMULATOR_HOST` before running the app.
+- **GCP:** Do not set `FIRESTORE_EMULATOR_HOST`.

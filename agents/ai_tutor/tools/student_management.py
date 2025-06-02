@@ -19,11 +19,14 @@ import os
 from datetime import datetime
 from typing import Dict, Optional
 from google.adk.tools import ToolContext
+from firestore_client import get_firestore_client
+import uuid
+from google.cloud import firestore
 
 
 async def save_student_info(name: str, age: int, tool_context: ToolContext) -> str:
     """
-    Save student's basic information to a file and session context.
+    Save student's basic information to Firestore and session context.
     
     Args:
         name (str): Student's full name
@@ -34,39 +37,18 @@ async def save_student_info(name: str, age: int, tool_context: ToolContext) -> s
         str: Confirmation message about saving student information
     """
     try:
-        # Create student data directory if it doesn't exist
-        data_dir = os.path.join(os.path.dirname(__file__), "..", "student_data")
-        os.makedirs(data_dir, exist_ok=True)
-        
-        # Create unique filename based on name and timestamp
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        safe_name = "".join(c for c in name if c.isalnum() or c in (' ', '-', '_')).rstrip()
-        safe_name = safe_name.replace(' ', '_')
-        filename = f"{safe_name}_{timestamp}.json"
-        filepath = os.path.join(data_dir, filename)
-        
-        # Prepare student data
+        db = get_firestore_client()
+        student_id = str(uuid.uuid4())
         student_data = {
-            "personal_info": {
                 "name": name,
                 "age": age,
                 "registration_date": datetime.now().isoformat(),
-                "student_id": f"{safe_name}_{timestamp}"
-            },
-            "assessments": [],
-            "progress_history": []
+            "student_id": student_id
         }
-        
-        # Save to file
-        with open(filepath, 'w', encoding='utf-8') as f:
-            json.dump(student_data, f, indent=2, ensure_ascii=False)
-        
-        # Store in session context for current session
-        tool_context.state["student_info"] = student_data["personal_info"]
-        tool_context.state["student_filepath"] = filepath
-        
-        return f"Successfully registered student: {name} (Age: {age}). Student ID: {student_data['personal_info']['student_id']}"
-        
+        db.collection("students").document(student_id).set(student_data)
+        tool_context.state["student_info"] = student_data
+        tool_context.state["student_id"] = student_id
+        return f"Successfully registered student: {name} (Age: {age}). Student ID: {student_id}"
     except Exception as e:
         return f"Error saving student information: {str(e)}"
 
@@ -105,7 +87,7 @@ async def save_assessment_results(
     tool_context: ToolContext
 ) -> str:
     """
-    Save complete IELTS assessment results to the student's file.
+    Save complete IELTS assessment results to Firestore.
     
     Args:
         band_score (float): Overall IELTS band score (1-9)
@@ -123,15 +105,10 @@ async def save_assessment_results(
         str: Confirmation message about saving assessment results
     """
     try:
-        # Check if student is registered
-        if "student_filepath" not in tool_context.state:
+        db = get_firestore_client()
+        student_id = tool_context.state.get("student_id")
+        if not student_id:
             return "Error: No student registered. Please register student first."
-        
-        filepath = tool_context.state["student_filepath"]
-        
-        # Load existing student data
-        with open(filepath, 'r', encoding='utf-8') as f:
-            student_data = json.load(f)
         
         # Create assessment record
         assessment_record = {
@@ -153,9 +130,7 @@ async def save_assessment_results(
             "examiner": "AI Tutor IELTS Screener",
             "test_duration_minutes": 15
         }
-        
-        # Add assessment to student record
-        student_data["assessments"].append(assessment_record)
+        db.collection("students").document(student_id).collection("assessments").add(assessment_record)
         
         # Update progress history
         progress_entry = {
@@ -164,24 +139,19 @@ async def save_assessment_results(
             "key_areas_improved": strengths,
             "areas_to_focus": weaknesses
         }
-        student_data["progress_history"].append(progress_entry)
-        
-        # Save updated data
-        with open(filepath, 'w', encoding='utf-8') as f:
-            json.dump(student_data, f, indent=2, ensure_ascii=False)
+        db.collection("students").document(student_id).collection("progress_history").add(progress_entry)
         
         # Update session context
         tool_context.state["latest_assessment"] = assessment_record
         
         return f"Assessment results saved successfully! Overall band score: {band_score}/9.0"
-        
     except Exception as e:
         return f"Error saving assessment results: {str(e)}"
 
 
 async def load_student_history(student_name: str, tool_context: ToolContext) -> str:
     """
-    Load previous assessment history for a returning student.
+    Load previous assessment history for a returning student from Firestore.
     
     Args:
         student_name (str): Student's name to search for
@@ -191,45 +161,31 @@ async def load_student_history(student_name: str, tool_context: ToolContext) -> 
         str: Student's assessment history or message if not found
     """
     try:
-        data_dir = os.path.join(os.path.dirname(__file__), "..", "student_data")
-        
-        if not os.path.exists(data_dir):
-            return "No student records found."
-        
-        # Search for student files
-        safe_name = "".join(c for c in student_name if c.isalnum() or c in (' ', '-', '_')).rstrip()
-        safe_name = safe_name.replace(' ', '_').lower()
-        
-        matching_files = []
-        for filename in os.listdir(data_dir):
-            if filename.lower().startswith(safe_name.lower()) and filename.endswith('.json'):
-                matching_files.append(filename)
-        
-        if not matching_files:
+        db = get_firestore_client()
+        # Search for student by name (latest registration)
+        students_ref = db.collection("students").where("name", "==", student_name).order_by("registration_date", direction=firestore.Query.DESCENDING).limit(1)
+        students = list(students_ref.stream())
+        if not students:
             return f"No previous records found for student: {student_name}"
-        
-        # Load the most recent file
-        latest_file = sorted(matching_files)[-1]
-        filepath = os.path.join(data_dir, latest_file)
-        
-        with open(filepath, 'r', encoding='utf-8') as f:
-            student_data = json.load(f)
-        
+        student_doc = students[0]
+        student_data = student_doc.to_dict()
+        student_id = student_data["student_id"]
+        # Get assessments
+        assessments_ref = db.collection("students").document(student_id).collection("assessments").order_by("assessment_date")
+        assessments = list(assessments_ref.stream())
         # Prepare history summary
-        history_summary = f"Student: {student_data['personal_info']['name']}\n"
-        history_summary += f"Age: {student_data['personal_info']['age']}\n"
-        history_summary += f"Registered: {student_data['personal_info']['registration_date']}\n\n"
-        
-        if student_data['assessments']:
+        history_summary = f"Student: {student_data['name']}\n"
+        history_summary += f"Age: {student_data['age']}\n"
+        history_summary += f"Registered: {student_data['registration_date']}\n\n"
+        if assessments:
             history_summary += "Previous Assessments:\n"
-            for i, assessment in enumerate(student_data['assessments'], 1):
-                history_summary += f"{i}. Date: {assessment['assessment_date'][:10]}\n"
-                history_summary += f"   Band Score: {assessment['scores']['overall_band']}/9.0\n"
-                history_summary += f"   Strengths: {assessment['evaluation']['strengths'][:100]}...\n\n"
+            for i, assessment in enumerate(assessments, 1):
+                a = assessment.to_dict()
+                history_summary += f"{i}. Date: {a['assessment_date'][:10]}\n"
+                history_summary += f"   Band Score: {a['scores']['overall_band']}/9.0\n"
+                history_summary += f"   Strengths: {a['evaluation']['strengths'][:100]}...\n\n"
         else:
             history_summary += "No previous assessments on record.\n"
-        
         return history_summary
-        
     except Exception as e:
         return f"Error loading student history: {str(e)}" 
