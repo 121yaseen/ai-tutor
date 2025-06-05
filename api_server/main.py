@@ -28,6 +28,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from typing import Optional, Dict
 
 from agents.ai_tutor.agent import root_agent
+from firestore_client import get_firestore_client
 
 #
 # Pistah - IELTS Tutor
@@ -151,7 +152,7 @@ ALGORITHM = "HS256"
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Firestore client
-firestore_client = firestore.Client()
+firestore_client = get_firestore_client()
 users_collection = firestore_client.collection("users")
 
 auth_router = APIRouter()
