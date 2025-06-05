@@ -224,4 +224,143 @@ function arrayBufferToBase64(buffer) {
   }
   return window.btoa(binary);
 }
+
+// === AUTH LOGIC ===
+const authSection = document.getElementById('auth-section');
+const userInfoDiv = document.getElementById('user-info');
+const userNameSpan = document.getElementById('user-name');
+const logoutBtn = document.getElementById('logoutBtn');
+const appLogoutBtn = document.getElementById('appLogoutBtn');
+const loginForm = document.getElementById('login-form');
+const loginError = document.getElementById('login-error');
+const registerForm = document.getElementById('register-form');
+const registerError = document.getElementById('register-error');
+
+// Updated selectors for the new links
+const showLoginLink = document.getElementById('show-login-link');
+const showRegisterLink = document.getElementById('show-register-link');
+
+const appContainer = document.querySelector('.container');
+const loginPageWrapper = document.querySelector('.login-page-wrapper');
+
+function showLoginForm() {
+  if(loginForm) loginForm.style.display = '';
+  if(registerForm) registerForm.style.display = 'none';
+  if(loginError) loginError.textContent = '';
+  if(registerError) registerError.textContent = '';
+}
+function showRegisterForm() {
+  if(loginForm) loginForm.style.display = 'none';
+  if(registerForm) registerForm.style.display = '';
+  if(loginError) loginError.textContent = '';
+  if(registerError) registerError.textContent = '';
+}
+
+// This function shows the main application content PLUS user info in the auth column
+function showAppContent(email) {
+  console.log("[showAppContent] Called. Hiding login wrapper, showing app container.");
+  if (loginPageWrapper) loginPageWrapper.style.display = 'none'; // Hide login page completely
+  if (appContainer) appContainer.style.display = 'flex'; // Show main app content
+}
+
+// This function shows the authentication page (login/register forms)
+function showAuthPageStructure() {
+  if(loginPageWrapper) loginPageWrapper.style.display = 'flex';
+  if(appContainer) appContainer.style.display = 'none'; // Hide main app content
+  if(userInfoDiv) userInfoDiv.style.display = 'none'; // Hide user info block
+  showLoginForm(); // Default to showing the login form
+}
+
+// Updated event listeners for the new links
+if (showLoginLink) showLoginLink.addEventListener('click', (e) => {
+    e.preventDefault(); // Prevent anchor link behavior if it was an <a> tag
+    showLoginForm();
+});
+if (showRegisterLink) showRegisterLink.addEventListener('click', (e) => {
+    e.preventDefault(); // Prevent anchor link behavior
+    showRegisterForm();
+});
+
+loginForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  loginError.textContent = '';
+  const email = document.getElementById('login-username').value;
+  const password = document.getElementById('login-password').value;
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    if (res.ok) {
+      // Immediately show the AI assistant page after login
+      showAppContent(email);
+      await checkAuth();
+    } else {
+      const data = await res.json();
+      loginError.textContent = data.detail || 'Login failed';
+    }
+  } catch (err) {
+    loginError.textContent = 'Login error';
+  }
+});
+
+registerForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  registerError.textContent = '';
+  const email = document.getElementById('register-email').value;
+  const password = document.getElementById('register-password').value;
+  try {
+    const res = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    if (res.ok) {
+      // Auto-login after registration
+      await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      await checkAuth();
+    } else {
+      const data = await res.json();
+      registerError.textContent = data.detail || 'Registration failed';
+    }
+  } catch (err) {
+    registerError.textContent = 'Registration error';
+  }
+});
+
+if (appLogoutBtn) {
+  appLogoutBtn.addEventListener('click', async () => {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    showAuthPageStructure(); // Show login page and hide app content
+  });
+}
+
+async function checkAuth() {
+  console.log("[checkAuth] Called.");
+  try {
+    const res = await fetch('/api/auth/me');
+    if (res.ok) {
+      const data = await res.json();
+      // Ensure backend returns email in the /me response for consistency
+      if (data && data.email) { 
+        console.log("[checkAuth] User authenticated, email:", data.email);
+        showAppContent(data.email); // User is logged in
+        return;
+      }
+    }
+  } catch (err) {
+    console.error("Error during checkAuth:", err);
+  }
+  console.log("[checkAuth] User NOT authenticated or error occurred. Showing auth page.");
+  showAuthPageStructure(); // User is not logged in, or error, show auth page
+}
+
+// On page load, check auth
+checkAuth();
+
 });

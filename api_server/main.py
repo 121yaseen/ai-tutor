@@ -16,10 +16,16 @@ from google.adk.runners import InMemoryRunner
 from google.adk.agents import LiveRequestQueue
 from google.adk.agents.run_config import RunConfig
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, APIRouter, Depends, HTTPException, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from passlib.context import CryptContext
+import jwt
+from google.cloud import firestore
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from typing import Optional
 
 from agents.ai_tutor.agent import root_agent
 
@@ -139,6 +145,107 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 # Store active sessions
 active_sessions = {}
 
+# JWT and password hashing setup
+SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "supersecretkey")
+ALGORITHM = "HS256"
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+# Firestore client
+firestore_client = firestore.Client()
+users_collection = firestore_client.collection("users")
+
+auth_router = APIRouter()
+
+class UserRegister(BaseModel):
+    email: str
+    password: str
+
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
+class UserOut(BaseModel):
+    email: str
+
+# Helper functions
+def get_user_by_email(email: str):
+    docs = users_collection.where("email", "==", email).stream()
+    for doc in docs:
+        return doc.to_dict()
+    return None
+
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
+
+def get_password_hash(password):
+    return pwd_context.hash(password)
+
+def create_access_token(data: dict):
+    return jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
+
+def decode_access_token(token: str):
+    try:
+        return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    except jwt.PyJWTError:
+        return None
+
+# Auth endpoints
+@auth_router.post("/api/auth/register", response_model=UserOut)
+def register(user: UserRegister):
+    if get_user_by_email(user.email):
+        raise HTTPException(status_code=400, detail="Email already exists")
+    hashed_password = get_password_hash(user.password)
+    user_data = {
+        "email": user.email,
+        "password_hash": hashed_password,
+    }
+    users_collection.add(user_data)
+    return UserOut(email=user.email)
+
+@auth_router.post("/api/auth/login")
+def login(user: UserLogin, response: Response):
+    db_user = get_user_by_email(user.email)
+    if not db_user or not verify_password(user.password, db_user["password_hash"]):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    token = create_access_token({"sub": db_user["email"]})
+    response.set_cookie(key="access_token", value=token, httponly=True, secure=True)
+    return {"message": "Logged in"}
+
+@auth_router.post("/api/auth/logout")
+def logout(response: Response):
+    response.delete_cookie("access_token")
+    return {"message": "Logged out"}
+
+@auth_router.get("/api/auth/me", response_model=Optional[UserOut])
+def get_me(request: Request):
+    token = request.cookies.get("access_token")
+    if not token:
+        return None
+    payload = decode_access_token(token)
+    if not payload:
+        return None
+    email = payload.get("sub")
+    db_user = get_user_by_email(email)
+    if not db_user:
+        return None
+    return UserOut(email=db_user["email"])
+
+# Dependency for protected endpoints
+def get_current_user(request: Request):
+    token = request.cookies.get("access_token")
+    if not token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    payload = decode_access_token(token)
+    if not payload:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    email = payload.get("sub")
+    db_user = get_user_by_email(email)
+    if not db_user:
+        raise HTTPException(status_code=401, detail="User not found")
+    return db_user
+
+# Register the auth router
+app.include_router(auth_router)
 
 @app.get("/")
 async def root():
