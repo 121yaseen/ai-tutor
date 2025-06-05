@@ -25,22 +25,22 @@ from passlib.context import CryptContext
 import jwt
 from google.cloud import firestore
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from typing import Optional
+from typing import Optional, Dict
 
 from agents.ai_tutor.agent import root_agent
 
 #
-# ADK Streaming
+# Pistah - IELTS Tutor
 #
 
 # Load Gemini API Key
 load_dotenv()
 
-APP_NAME = "ADK Streaming example"
+APP_NAME = "Pistah - IELTS Tutor"
 
 
-async def start_agent_session(user_id, is_audio=False):
-    """Starts an agent session"""
+async def start_agent_session(user_email: str, is_audio=False):
+    """Starts an agent session using the authenticated user's email as the session's user_id"""
 
     # Create a Runner
     runner = InMemoryRunner(
@@ -51,7 +51,7 @@ async def start_agent_session(user_id, is_audio=False):
     # Create a Session
     session = await runner.session_service.create_session(
         app_name=APP_NAME,
-        user_id=user_id,  # Replace with actual user ID
+        user_id=user_email,  # Use authenticated user's email
     )
 
     # Set response modality
@@ -189,6 +189,20 @@ def decode_access_token(token: str):
     except jwt.PyJWTError:
         return None
 
+# Renamed and modified to be a dependency that provides the user's email
+async def get_authenticated_user_email(request: Request) -> str:
+    token = request.cookies.get("access_token")
+    if not token:
+        raise HTTPException(status_code=401, detail="Not authenticated - No token")
+    payload = decode_access_token(token)
+    if not payload:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    email = payload.get("sub")
+    if not email:
+        raise HTTPException(status_code=401, detail="Token does not contain user email")
+    # Optional: Verify user still exists in DB if necessary, but for email retrieval this is enough
+    return email
+
 # Auth endpoints
 @auth_router.post("/api/auth/register", response_model=UserOut)
 def register(user: UserRegister):
@@ -216,7 +230,7 @@ def logout(response: Response):
     response.delete_cookie("access_token")
     return {"message": "Logged out"}
 
-@auth_router.get("/api/auth/me", response_model=Optional[UserOut])
+@auth_router.get("/api/auth/me", response_model=Optional[dict])
 def get_me(request: Request):
     token = request.cookies.get("access_token")
     if not token:
@@ -228,21 +242,21 @@ def get_me(request: Request):
     db_user = get_user_by_email(email)
     if not db_user:
         return None
-    return UserOut(email=db_user["email"])
-
-# Dependency for protected endpoints
-def get_current_user(request: Request):
-    token = request.cookies.get("access_token")
-    if not token:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    payload = decode_access_token(token)
-    if not payload:
-        raise HTTPException(status_code=401, detail="Invalid token")
-    email = payload.get("sub")
-    db_user = get_user_by_email(email)
-    if not db_user:
-        raise HTTPException(status_code=401, detail="User not found")
     return db_user
+
+# Dependency for protected endpoints (original one, can be kept if used elsewhere, or removed if get_authenticated_user_email replaces its usage patterns)
+# async def get_current_user(request: Request):
+# token = request.cookies.get("access_token")
+# if not token:
+# raise HTTPException(status_code=401, detail="Not authenticated")
+# payload = decode_access_token(token)
+# if not payload:
+# raise HTTPException(status_code=401, detail="Invalid token")
+# email = payload.get("sub")
+# db_user = get_user_by_email(email)
+# if not db_user:
+# raise HTTPException(status_code=401, detail="User not found")
+# return db_user
 
 # Register the auth router
 app.include_router(auth_router)
@@ -253,49 +267,60 @@ async def root():
     return FileResponse(STATIC_DIR / "index.html")
 
 
-@app.get("/events/{user_id}")
-async def sse_endpoint(user_id: int, is_audio: str = "false"):
+@app.get("/events/{client_session_id}")
+async def sse_endpoint(
+    client_session_id: str,
+    is_audio: str = "false",
+    authenticated_user_email: str = Depends(get_authenticated_user_email)
+):
     """SSE endpoint for agent to client communication"""
-    print(f"[SSE /events/{user_id}]: Connection attempt received. is_audio={is_audio}")
+    print(f"[SSE /events/{client_session_id}]: Connection attempt received. is_audio={is_audio}")
 
     try:
         # Start agent session
-        user_id_str = str(user_id)
-        print(f"[SSE /events/{user_id_str}]: Starting agent session...")
-        live_events, live_request_queue = await start_agent_session(user_id_str, is_audio == "true")
-        print(f"[SSE /events/{user_id_str}]: Agent session started. live_events and live_request_queue created.")
+        print(f"[SSE /events/{client_session_id}]: Starting agent session...")
+        live_events, live_request_queue = await start_agent_session(
+            user_email=authenticated_user_email,
+            is_audio=is_audio.lower() == "true"
+        )
+        print(f"[SSE /events/{client_session_id}]: Agent session started. live_events and live_request_queue created.")
 
         # Store the request queue for this user
-        active_sessions[user_id_str] = live_request_queue
-        print(f"[SSE /events/{user_id_str}]: live_request_queue stored in active_sessions.")
+        active_sessions[client_session_id] = live_request_queue
+        print(f"[SSE /events/{client_session_id}]: live_request_queue stored in active_sessions.")
 
-        print(f"Client #{user_id} connected via SSE, audio mode: {is_audio}")
+        print(f"Client #{client_session_id} connected via SSE, audio mode: {is_audio}")
 
         def cleanup():
-            print(f"[SSE /events/{user_id_str}]: Cleanup called.")
+            print(f"[SSE /events/{client_session_id}]: Cleanup called.")
             live_request_queue.close()
-            if user_id_str in active_sessions:
-                del active_sessions[user_id_str]
-            print(f"Client #{user_id} disconnected from SSE")
+            if client_session_id in active_sessions:
+                del active_sessions[client_session_id]
+            print(f"Client #{client_session_id} disconnected from SSE")
 
         async def event_generator():
-            print(f"[SSE /events/{user_id_str}]: Event generator started.")
+            print(f"[SSE /events/{client_session_id}]: Event generator started.")
             try:
-                # Send an initial connected message
-                yield f"data: {json.dumps({'message': 'SSE connection established', 'user_id': user_id_str})}\n\n"
-                print(f"[SSE /events/{user_id_str}]: Sent initial 'connected' message.")
+                # Send an initial connected message & session ready message
+                yield f"data: {json.dumps({'message': 'SSE connection established', 'user_id': client_session_id})}\n\n"
+                print(f"[SSE /events/{client_session_id}]: Sent initial 'connected' message.")
+                
+                # Explicitly signal that the server-side session is fully ready for data
+                yield f"data: {json.dumps({'type': 'session_ready_for_data', 'user_id': client_session_id})}\n\n"
+                print(f"[SSE /events/{client_session_id}]: Sent 'session_ready_for_data' message.")
+                
                 await asyncio.sleep(0)
 
                 async for data in agent_to_client_sse(live_events):
-                    print(f"[SSE /events/{user_id_str}]: Yielding data: {data[:100]}...")
+                    print(f"[SSE /events/{client_session_id}]: Yielding data: {data[:100]}...")
                     yield data
-                print(f"[SSE /events/{user_id_str}]: Finished iterating agent_to_client_sse.")
+                print(f"[SSE /events/{client_session_id}]: Finished iterating agent_to_client_sse.")
             except Exception as e:
-                print(f"[SSE /events/{user_id_str}]: Error in SSE stream event_generator: {e}", repr(e))
+                print(f"[SSE /events/{client_session_id}]: Error in SSE stream event_generator: {e}", repr(e))
             finally:
-                print(f"[SSE /events/{user_id_str}]: Event generator finally block. Calling cleanup.")
+                print(f"[SSE /events/{client_session_id}]: Event generator finally block. Calling cleanup.")
                 cleanup()
-                print(f"[SSE /events/{user_id_str}]: Event generator finished.")
+                print(f"[SSE /events/{client_session_id}]: Event generator finished.")
 
         return StreamingResponse(
             event_generator(),
@@ -308,22 +333,24 @@ async def sse_endpoint(user_id: int, is_audio: str = "false"):
             }
         )
     except Exception as e:
-        print(f"[SSE /events/{user_id}]: CRITICAL ERROR in sse_endpoint before returning StreamingResponse: {e}", repr(e))
+        print(f"[SSE /events/{client_session_id}]: CRITICAL ERROR in sse_endpoint before returning StreamingResponse: {e}", repr(e))
         # Optionally, return an error response if appropriate before streaming starts
         # For now, just logging, as it might be hard to return HTTP error if headers already sent.
         # raise # or handle gracefully
 
 
-@app.post("/send/{user_id}")
-async def send_message_endpoint(user_id: int, request: Request):
+@app.post("/send/{client_session_id}")
+async def send_message_endpoint(
+    client_session_id: str,
+    request: Request,
+    authenticated_user_email: str = Depends(get_authenticated_user_email)
+):
     """HTTP endpoint for client to agent communication"""
 
-    user_id_str = str(user_id)
+    if client_session_id not in active_sessions:
+        raise HTTPException(status_code=404, detail="Session not found or expired")
 
-    # Get the live request queue for this user
-    live_request_queue = active_sessions.get(user_id_str)
-    if not live_request_queue:
-        return {"error": "Session not found"}
+    live_request_queue = active_sessions[client_session_id]
 
     # Parse the message
     message = await request.json()
