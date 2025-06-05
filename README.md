@@ -133,3 +133,8 @@ export FIRESTORE_EMULATOR_HOST=localhost:8080
 
 - **Local:** Set `FIRESTORE_EMULATOR_HOST` before running the app.
 - **GCP:** Do not set `FIRESTORE_EMULATOR_HOST`.
+
+```
+firebase emulators:start --only firestore
+clear && source .venv/bin/activate && uvicorn api_server.main:app --reload
+```
