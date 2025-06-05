@@ -27,6 +27,7 @@ let is_audio = false;
 let sessionId = null;
 let sse_url = null;
 let send_url = null;
+let isServerSessionReady = false; // Flag to track server readiness
 
 // Get DOM elements
 const conversationDiv = document.getElementById("conversation");
@@ -53,6 +54,15 @@ function connectSSE() {
     try {
       const message_from_server = JSON.parse(event.data);
       //console.log("[AGENT TO CLIENT] ", message_from_server);
+
+      // Check for session ready message
+      if (message_from_server.type === "session_ready_for_data") {
+        console.log("[SSE] Received session_ready_for_data from server.");
+        isServerSessionReady = true;
+        // Potentially send any buffered audio data here if implemented
+        return; 
+      }
+
       if (
         message_from_server.turn_complete &&
         message_from_server.turn_complete == true
@@ -86,6 +96,7 @@ function connectSSE() {
     if (conversationDiv) conversationDiv.textContent = "Connection closed";
     if (eventSource) eventSource.close();
     eventSource = null;
+    isServerSessionReady = false; // Reset flag
   };
 }
 
@@ -160,6 +171,7 @@ micBtn.addEventListener("click", function() {
   sse_url = window.location.protocol + "//" + window.location.host + "/events/" + sessionId;
   send_url = window.location.protocol + "//" + window.location.host + "/send/" + sessionId;
   is_audio = true;
+  isServerSessionReady = false; // Reset flag for new session
   currentMessageId = null;
   if (conversationDiv) conversationDiv.textContent = '';
   startAudio();
@@ -205,9 +217,15 @@ stopBtn.addEventListener("click", () => {
   currentMessageId = null;
   if (conversationDiv) conversationDiv.textContent = '';
   if (window.setVoiceWaveActive) window.setVoiceWaveActive(false);
+  isServerSessionReady = false; // Reset flag
 });
 
 function audioRecorderHandler(pcmData) {
+  if (!isServerSessionReady) {
+    console.log("[AUDIO RECORDER] Server session not ready. Audio data buffered/dropped.");
+    // Optionally, buffer pcmData here if needed, then send when isServerSessionReady becomes true
+    return; 
+  }
   sendMessage({
     mime_type: "audio/pcm",
     data: arrayBufferToBase64(pcmData),
@@ -349,6 +367,7 @@ async function checkAuth() {
       // Ensure backend returns email in the /me response for consistency
       if (data && data.email) { 
         console.log("[checkAuth] User authenticated, email:", data.email);
+        console.log("[DEV LOG] Full user document from 'users' collection:", data);
         showAppContent(data.email); // User is logged in
         return;
       }
