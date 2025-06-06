@@ -26,7 +26,7 @@ from google.cloud import firestore
 from google.cloud.firestore_v1 import Query as FirestoreQuery
 
 # Development/Debug log toggle
-ENABLE_DEV_LOGS = True
+ENABLE_DEV_LOGS = False
 
 def _log_dev(message: str):
     if ENABLE_DEV_LOGS:
@@ -44,12 +44,12 @@ async def save_student_info(name: str, age: int, tool_context: ToolContext) -> s
     Returns:
         str: Confirmation message about saving student information
     """
-    print(f"[DIAG save_student_info] tool_context type: {type(tool_context)}")
-    print(f"[DIAG save_student_info] tool_context dir: {dir(tool_context)}")
-    try:
-        print(f"[DIAG save_student_info] tool_context vars: {vars(tool_context)}")
-    except TypeError:
-        print(f"[DIAG save_student_info] tool_context vars: Not available (vars() failed, possibly due to slots)")
+    # print(f"[DIAG save_student_info] tool_context type: {type(tool_context)}")
+    # print(f"[DIAG save_student_info] tool_context dir: {dir(tool_context)}")
+    # try:
+    #     print(f"[DIAG save_student_info] tool_context vars: {vars(tool_context)}")
+    # except TypeError:
+    #     print(f"[DIAG save_student_info] tool_context vars: Not available (vars() failed, possibly due to slots)")
     email = tool_context._invocation_context.session.user_id
     _log_dev(f"[DEV LOG save_student_info] Attempting to save student info for email: {email}. Name: {name}, Age: {age}")
     
@@ -71,10 +71,10 @@ async def save_student_info(name: str, age: int, tool_context: ToolContext) -> s
         return f"Student information for {name} (email: {email}) has been saved."
     except Exception as e:
         _log_dev(f"[DEV LOG save_student_info] Error saving student info for {email}: {e}")
-        print(f"Error in save_student_info: {e}") # Keep for more prominent error logging
+        # print(f"Error in save_student_info: {e}") # Keep for more prominent error logging
         return f"Error saving student information: {str(e)}"
 
-async def get_student_info(tool_context: ToolContext) -> dict:
+async def get_student_info(tool_context: ToolContext) -> str:
     """
     Get student's basic information from Firestore using their email (from tool_context._invocation_context.session.user_id) as document ID.
     
@@ -82,21 +82,21 @@ async def get_student_info(tool_context: ToolContext) -> dict:
         tool_context (ToolContext): The tool context for accessing session state and user_id (email)
         
     Returns:
-        dict: {"found": bool, "data": student_info_dict or None}
+        str: JSON string representation of {"found": bool, "data": student_info_dict or None}
     """
-    print(f"[DIAG get_student_info] tool_context type: {type(tool_context)}")
-    print(f"[DIAG get_student_info] tool_context dir: {dir(tool_context)}")
-    try:
-        print(f"[DIAG get_student_info] tool_context vars: {vars(tool_context)}")
-    except TypeError:
-        print(f"[DIAG get_student_info] tool_context vars: Not available (vars() failed, possibly due to slots)")
+    # print(f"[DIAG get_student_info] tool_context type: {type(tool_context)}")
+    # print(f"[DIAG get_student_info] tool_context dir: {dir(tool_context)}")
+    # try:
+    #     print(f"[DIAG get_student_info] tool_context vars: {vars(tool_context)}")
+    # except TypeError:
+    #     print(f"[DIAG get_student_info] tool_context vars: Not available (vars() failed, possibly due to slots)")
     
     email = tool_context._invocation_context.session.user_id
     _log_dev(f"[DEV LOG get_student_info] Attempting to get student info for email: {email}")
     
     if not email:
         _log_dev("[DEV LOG get_student_info] Error: Email (user_id) not found in tool_context.")
-        return {"found": False, "data": "Error: User email not found in session."}
+        return json.dumps({"found": False, "data": "Error: User email not found in session."})
 
     try:
         db = get_async_firestore_client()
@@ -106,14 +106,14 @@ async def get_student_info(tool_context: ToolContext) -> dict:
         if student_doc.exists:
             student_data = student_doc.to_dict()
             _log_dev(f"[DEV LOG get_student_info] Student info found for {email}: {student_data}")
-            return {"found": True, "data": student_data}
+            return json.dumps({"found": True, "data": student_data}, default=str)
         else:
             _log_dev(f"[DEV LOG get_student_info] No student info found for {email}.")
-            return {"found": False, "data": "No student record found for this email."}
+            return json.dumps({"found": False, "data": "No student record found for this email."})
     except Exception as e:
         _log_dev(f"[DEV LOG get_student_info] Error getting student info for {email}: {e}")
-        print(f"Error in get_student_info: {e}") # Keep for more prominent error logging
-        return {"found": False, "data": f"Error accessing database: {str(e)}"}
+        # print(f"Error in get_student_info: {e}") # Keep for more prominent error logging
+        return json.dumps({"found": False, "data": f"Error accessing database: {str(e)}"}, default=str)
 
 async def save_assessment_results(
     assessment_details: dict, 
@@ -134,12 +134,12 @@ async def save_assessment_results(
     Returns:
         str: Confirmation message.
     """
-    print(f"[DIAG save_assessment_results] tool_context type: {type(tool_context)}")
-    print(f"[DIAG save_assessment_results] tool_context dir: {dir(tool_context)}")
-    try:
-        print(f"[DIAG save_assessment_results] tool_context vars: {vars(tool_context)}")
-    except TypeError:
-        print(f"[DIAG save_assessment_results] tool_context vars: Not available (vars() failed, possibly due to slots)")
+    # print(f"[DIAG save_assessment_results] tool_context type: {type(tool_context)}")
+    # print(f"[DIAG save_assessment_results] tool_context dir: {dir(tool_context)}")
+    # try:
+    #     print(f"[DIAG save_assessment_results] tool_context vars: {vars(tool_context)}")
+    # except TypeError:
+    #     print(f"[DIAG save_assessment_results] tool_context vars: Not available (vars() failed, possibly due to slots)")
 
     email = tool_context._invocation_context.session.user_id
     _log_dev(f"[DEV LOG save_assessment_results] Attempting to save assessment for email: {email}")
@@ -168,7 +168,7 @@ async def save_assessment_results(
         return "Assessment results have been successfully saved."
     except Exception as e:
         _log_dev(f"[DEV LOG save_assessment_results] Error saving assessment for {email}: {e}")
-        print(f"Error in save_assessment_results: {e}") 
+        # print(f"Error in save_assessment_results: {e}") 
         return f"Error saving assessment results: {str(e)}"
 
 async def load_student_history(tool_context: ToolContext) -> dict:
@@ -181,12 +181,12 @@ async def load_student_history(tool_context: ToolContext) -> dict:
     Returns:
         dict: {"history_found": bool, "assessments": list_of_assessment_data or "Error message"}
     """
-    print(f"[DIAG load_student_history] tool_context type: {type(tool_context)}")
-    print(f"[DIAG load_student_history] tool_context dir: {dir(tool_context)}")
-    try:
-        print(f"[DIAG load_student_history] tool_context vars: {vars(tool_context)}")
-    except TypeError:
-        print(f"[DIAG load_student_history] tool_context vars: Not available (vars() failed, possibly due to slots)")
+    # print(f"[DIAG load_student_history] tool_context type: {type(tool_context)}")
+    # print(f"[DIAG load_student_history] tool_context dir: {dir(tool_context)}")
+    # try:
+    #     print(f"[DIAG load_student_history] tool_context vars: {vars(tool_context)}")
+    # except TypeError:
+    #     print(f"[DIAG load_student_history] tool_context vars: Not available (vars() failed, possibly due to slots)")
 
     email = tool_context._invocation_context.session.user_id
     _log_dev(f"[DEV LOG load_student_history] Attempting to load history for email: {email}")
@@ -221,5 +221,5 @@ async def load_student_history(tool_context: ToolContext) -> dict:
             
     except Exception as e:
         _log_dev(f"[DEV LOG load_student_history] Error loading history for {email}: {e}")
-        print(f"Error in load_student_history: {e}")
+        # print(f"Error in load_student_history: {e}")
         return {"history_found": False, "assessments": f"Error accessing database: {str(e)}"} 

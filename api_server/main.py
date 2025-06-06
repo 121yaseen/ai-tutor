@@ -81,12 +81,13 @@ async def agent_to_client_sse(live_events):
     async for event in live_events:
         # If the turn complete or interrupted, send it
         if event.turn_complete or event.interrupted:
+            # Add a small delay to allow any final audio packets to be sent
+            await asyncio.sleep(1)
             message = {
                 "turn_complete": event.turn_complete,
                 "interrupted": event.interrupted,
             }
             yield f"data: {json.dumps(message)}\n\n"
-            #print(f"[AGENT TO CLIENT]: {message}")
             continue
 
         # Read the Content and its first Part
@@ -106,7 +107,6 @@ async def agent_to_client_sse(live_events):
                     "data": base64.b64encode(audio_data).decode("ascii")
                 }
                 yield f"data: {json.dumps(message)}\n\n"
-                #print(f"[AGENT TO CLIENT]: audio/pcm: {len(audio_data)} bytes.")
                 continue
 
         # If it's text and a parial text, send it
@@ -116,7 +116,6 @@ async def agent_to_client_sse(live_events):
                 "data": part.text
             }
             yield f"data: {json.dumps(message)}\n\n"
-            #print(f"[AGENT TO CLIENT]: text/plain: {message}")
 
 
 #
@@ -140,8 +139,6 @@ main_py_file_path = Path(__file__).resolve()
 project_root = main_py_file_path.parent.parent
 # STATIC_DIR is the absolute path to 'app/frontend/static'
 STATIC_DIR = project_root / "frontend" / "static"
-
-app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 # Store active sessions
 active_sessions = {}
@@ -262,10 +259,11 @@ def get_me(request: Request):
 # Register the auth router
 app.include_router(auth_router)
 
-@app.get("/")
-async def root():
-    """Serves the index.html"""
-    return FileResponse(STATIC_DIR / "index.html")
+# The root path is now handled by the Next.js frontend.
+# @app.get("/")
+# async def root():
+#     """Serves the index.html"""
+#     return FileResponse(STATIC_DIR / "index.html")
 
 
 @app.get("/events/{client_session_id}")
@@ -275,53 +273,54 @@ async def sse_endpoint(
     authenticated_user_email: str = Depends(get_authenticated_user_email)
 ):
     """SSE endpoint for agent to client communication"""
-    print(f"[SSE /events/{client_session_id}]: Connection attempt received. is_audio={is_audio}")
+    # print(f"[SSE /events/{client_session_id}]: Connection attempt received. is_audio={is_audio}")
 
     try:
         # Start agent session
-        print(f"[SSE /events/{client_session_id}]: Starting agent session...")
+        # print(f"[SSE /events/{client_session_id}]: Starting agent session...")
         live_events, live_request_queue = await start_agent_session(
             user_email=authenticated_user_email,
             is_audio=is_audio.lower() == "true"
         )
-        print(f"[SSE /events/{client_session_id}]: Agent session started. live_events and live_request_queue created.")
+        # print(f"[SSE /events/{client_session_id}]: Agent session started. live_events and live_request_queue created.")
 
         # Store the request queue for this user
         active_sessions[client_session_id] = live_request_queue
-        print(f"[SSE /events/{client_session_id}]: live_request_queue stored in active_sessions.")
+        # print(f"[SSE /events/{client_session_id}]: live_request_queue stored in active_sessions.")
 
-        print(f"Client #{client_session_id} connected via SSE, audio mode: {is_audio}")
+        # print(f"Client #{client_session_id} connected via SSE, audio mode: {is_audio}")
 
         def cleanup():
-            print(f"[SSE /events/{client_session_id}]: Cleanup called.")
+            # print(f"[SSE /events/{client_session_id}]: Cleanup called.")
             live_request_queue.close()
             if client_session_id in active_sessions:
                 del active_sessions[client_session_id]
-            print(f"Client #{client_session_id} disconnected from SSE")
+            # print(f"Client #{client_session_id} disconnected from SSE")
 
         async def event_generator():
-            print(f"[SSE /events/{client_session_id}]: Event generator started.")
+            # print(f"[SSE /events/{client_session_id}]: Event generator started.")
             try:
                 # Send an initial connected message & session ready message
                 yield f"data: {json.dumps({'message': 'SSE connection established', 'user_id': client_session_id})}\n\n"
-                print(f"[SSE /events/{client_session_id}]: Sent initial 'connected' message.")
+                # print(f"[SSE /events/{client_session_id}]: Sent initial 'connected' message.")
                 
                 # Explicitly signal that the server-side session is fully ready for data
                 yield f"data: {json.dumps({'type': 'session_ready_for_data', 'user_id': client_session_id})}\n\n"
-                print(f"[SSE /events/{client_session_id}]: Sent 'session_ready_for_data' message.")
+                # print(f"[SSE /events/{client_session_id}]: Sent 'session_ready_for_data' message.")
                 
                 await asyncio.sleep(0)
 
                 async for data in agent_to_client_sse(live_events):
-                    print(f"[SSE /events/{client_session_id}]: Yielding data: {data[:100]}...")
+                    # print(f"[SSE /events/{client_session_id}]: Yielding data: {data[:100]}...")
                     yield data
-                print(f"[SSE /events/{client_session_id}]: Finished iterating agent_to_client_sse.")
+                # print(f"[SSE /events/{client_session_id}]: Finished iterating agent_to_client_sse.")
             except Exception as e:
-                print(f"[SSE /events/{client_session_id}]: Error in SSE stream event_generator: {e}", repr(e))
+                # print(f"[SSE /events/{client_session_id}]: Error in SSE stream event_generator: {e}", repr(e))
+                pass
             finally:
-                print(f"[SSE /events/{client_session_id}]: Event generator finally block. Calling cleanup.")
+                # print(f"[SSE /events/{client_session_id}]: Event generator finally block. Calling cleanup.")
                 cleanup()
-                print(f"[SSE /events/{client_session_id}]: Event generator finished.")
+                # print(f"[SSE /events/{client_session_id}]: Event generator finished.")
 
         return StreamingResponse(
             event_generator(),
@@ -334,10 +333,11 @@ async def sse_endpoint(
             }
         )
     except Exception as e:
-        print(f"[SSE /events/{client_session_id}]: CRITICAL ERROR in sse_endpoint before returning StreamingResponse: {e}", repr(e))
+        # print(f"[SSE /events/{client_session_id}]: CRITICAL ERROR in sse_endpoint before returning StreamingResponse: {e}", repr(e))
         # Optionally, return an error response if appropriate before streaming starts
         # For now, just logging, as it might be hard to return HTTP error if headers already sent.
         # raise # or handle gracefully
+        pass
 
 
 @app.post("/send/{client_session_id}")
@@ -362,11 +362,11 @@ async def send_message_endpoint(
     if mime_type == "text/plain":
         content = Content(role="user", parts=[Part.from_text(text=data)])
         live_request_queue.send_content(content=content)
-        #print(f"[CLIENT TO AGENT]: {data}")
+        # print(f"[CLIENT TO AGENT]: {data}")
     elif mime_type == "audio/pcm":
         decoded_data = base64.b64decode(data)
         live_request_queue.send_realtime(Blob(data=decoded_data, mime_type=mime_type))
-        #print(f"[CLIENT TO AGENT]: audio/pcm: {len(decoded_data)} bytes")
+        # print(f"[CLIENT TO AGENT]: audio/pcm: {len(decoded_data)} bytes")
     else:
         return {"error": f"Mime type not supported: {mime_type}"}
 
