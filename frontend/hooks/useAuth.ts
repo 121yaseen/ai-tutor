@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 
 export interface User {
     email: string;
@@ -7,6 +8,7 @@ export interface User {
 export const useAuth = () => {
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const router = useRouter();
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -53,6 +55,7 @@ export const useAuth = () => {
     const logout = async () => {
         await fetch('/api/auth/logout', { method: 'POST' });
         setUser(null);
+        router.push('/login');
     };
 
     return { user, isLoading, login, register, logout };

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useRouter } from 'next/router';
 
 interface LoginFormProps {
     switchToRegister: () => void;
@@ -7,6 +8,7 @@ interface LoginFormProps {
 
 const LoginForm: React.FC<LoginFormProps> = ({ switchToRegister }) => {
     const { login } = useAuth();
+    const router = useRouter();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -15,7 +17,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ switchToRegister }) => {
         e.preventDefault();
         setError('');
         const success = await login(email, password);
-        if (!success) {
+        if (success) {
+            router.push('/ai-tutor');
+        } else {
             setError('Invalid credentials. Please try again.');
         }
     };

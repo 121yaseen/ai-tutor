@@ -1,32 +1,22 @@
-import type { NextPage } from 'next'
-import Head from 'next/head'
-import Script from 'next/script'
-import { useAuth } from '@/hooks/useAuth'
-import AuthLayout from '@/components/auth/AuthLayout'
-import ChatInterface from '@/components/chat/ChatInterface'
+import { useEffect } from 'react';
+import { useRouter } from 'next/router';
+import { useAuth } from '@/hooks/useAuth';
 
-const Home: NextPage = () => {
-  const { user, isLoading } = useAuth()
+const IndexPage = () => {
+  const { user, isLoading } = useAuth();
+  const router = useRouter();
 
-  if (isLoading) {
-    return <div>Loading...</div>
-  }
+  useEffect(() => {
+    if (!isLoading) {
+      if (user) {
+        router.replace('/ai-tutor');
+      } else {
+        router.replace('/login');
+      }
+    }
+  }, [isLoading, user, router]);
 
-  return (
-    <>
-      <Head>
-        <title>AI Tutor Voice Assistant</title>
-      </Head>
+  return <div>Loading...</div>; // Or a splash screen
+};
 
-      {user ? (
-        <ChatInterface />
-      ) : (
-        <AuthLayout />
-      )}
-
-      <Script src="/js/voiceWave.js" strategy="lazyOnload" />
-    </>
-  )
-}
-
-export default Home
+export default IndexPage;
