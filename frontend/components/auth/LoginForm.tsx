@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/router';
+import styles from '../../styles/Auth.module.css';
 
 interface LoginFormProps {
     switchToRegister: () => void;
@@ -25,61 +26,51 @@ const LoginForm: React.FC<LoginFormProps> = ({ switchToRegister }) => {
     };
 
     return (
-        <form id="login-form" className="auth-form" onSubmit={handleSubmit}>
-            <h2 className="auth-title">Welcome back to Pistah!</h2>
-            <p className="auth-subtitle">Build your design system effortlessly with our powerful component library.</p>
+        <div className={styles.form}>
+            <h2 className={styles.title}>Welcome Back!</h2>
+            <p className={styles.subtitle}>Please sign in to continue.</p>
             
-            <label htmlFor="login-username">Email</label>
-            <div className="input-group modern-input">
-                <input 
-                    type="text" 
-                    id="login-username" 
-                    placeholder="alex.jordan@gmail.com" 
-                    required 
-                    autoComplete="username"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                />
-            </div>
-            
-            <label htmlFor="login-password">Password</label>
-            <div className="input-group modern-input focused">
-                <input 
-                    type="password" 
-                    id="login-password" 
-                    placeholder="••••••••" 
-                    required 
-                    autoComplete="current-password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                />
-            </div>
-
-            <div className="form-options">
-                <a href="#" className="forgot-password">Forgot password?</a>
-                <div className="remember-me">
-                    <span>Remember sign in details</span>
-                    <label className="switch">
-                        <input type="checkbox" />
-                        <span className="slider round"></span>
-                    </label>
+            <form onSubmit={handleSubmit}>
+                <div className={styles.inputGroup}>
+                    <label htmlFor="login-email">Email</label>
+                    <input 
+                        type="email" 
+                        id="login-email" 
+                        placeholder="you@example.com" 
+                        required 
+                        autoComplete="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className={styles.input}
+                    />
                 </div>
-            </div>
-            
-            <button type="submit" className="modern-btn primary-btn login-action-btn">Log in</button>
-            {error && <span id="login-error" className="auth-error">{error}</span>}
+                
+                <div className={styles.inputGroup}>
+                    <label htmlFor="login-password">Password</label>
+                    <input 
+                        type="password" 
+                        id="login-password" 
+                        placeholder="••••••••" 
+                        required 
+                        autoComplete="current-password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className={styles.input}
+                    />
+                </div>
 
-            <div className="form-divider">OR</div>
+                <div className={styles.formOptions}>
+                    <a href="#" className={styles.forgotPassword}>Forgot password?</a>
+                </div>
+                
+                <button type="submit" className={styles.submitButton}>Log In</button>
+                {error && <p className={styles.error}>{error}</p>}
+            </form>
 
-            <button type="button" className="modern-btn google-btn">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/768px-Google_%22G%22_logo.svg.png" alt="Google logo" className="google-icon"/> 
-                Continue with Google
-            </button>
-
-            <p className="auth-toggle-text">
-                Don't have an account? <button type="button" onClick={switchToRegister} className="link-btn">Sign up</button>
+            <p className={styles.toggleText}>
+                Don't have an account? <button onClick={switchToRegister} className={styles.toggleButton}>Sign up</button>
             </p>
-        </form>
+        </div>
     );
 };
 

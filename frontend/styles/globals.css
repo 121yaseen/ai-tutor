@@ -11,6 +11,13 @@
 }
 
 html,
+body,
+body > div:first-child,
+div#__next {
+  height: 100%;
+}
+
+html,
 body {
   max-width: 100vw;
   overflow-x: hidden;

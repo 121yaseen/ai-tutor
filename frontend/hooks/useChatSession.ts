@@ -26,7 +26,7 @@ const base64ToArray = (base64: string) => {
 
 interface Message {
     id: string;
-    type: 'text' | 'audio';
+    role: 'user' | 'assistant';
     content: string;
     isPartial?: boolean;
 }
@@ -42,8 +42,10 @@ export const useChatSession = () => {
     const [isSessionActive, setIsSessionActive] = useState(false);
     const [isServerReadyForData, setIsServerReadyForData] = useState(false);
     const [conversation, setConversation] = useState<Message[]>([]);
-    const { startAudio, stopAudio, playAudio } = useAudio();
+    const { startAudio, stopAudio, playAudio, analyser } = useAudio();
     const eventSource = useRef<EventSource | null>(null);
+    const [isThinking, setIsThinking] = useState(false);
+    const [isSpeaking, setIsSpeaking] = useState(false);
 
     const handleAudioData = useCallback((pcmData: ArrayBuffer) => {
         if (isServerReadyForData && eventSource.current && eventSource.current.readyState === EventSource.OPEN) {
@@ -82,8 +84,17 @@ export const useChatSession = () => {
                 setIsServerReadyForData(true);
                 return;
             }
-            
+
+            if (msg.mime_type === "text/plain" && msg.data.trim() === "[thinking]") {
+                setIsThinking(true);
+                // Clear any previous user "speaking" message
+                setConversation(prev => prev.filter(m => m.id !== 'user-turn'));
+                return;
+            }
+
             if (msg.turn_complete) {
+                setIsThinking(false);
+                setIsSpeaking(false);
                 // Finalize the last message by removing the partial flag
                 setConversation(prev => prev.map(m => 
                     m.id === sessionStorage.getItem('currentMessageId') ? { ...m, isPartial: false } : m
@@ -93,15 +104,23 @@ export const useChatSession = () => {
             }
 
             if (msg.mime_type === "audio/pcm" && msg.data) {
+                if(isThinking) setIsThinking(false);
+                if(!isSpeaking) setIsSpeaking(true);
                 playAudio(base64ToArray(msg.data));
             }
 
             if (msg.mime_type === "text/plain" && msg.data) {
+                if(isThinking) setIsThinking(false);
+                if(!isSpeaking) setIsSpeaking(true);
+
                 let currentMessageId = sessionStorage.getItem('currentMessageId');
                 if (!currentMessageId) {
                     currentMessageId = Math.random().toString(36).substring(7);
                     sessionStorage.setItem('currentMessageId', currentMessageId);
-                    setConversation(prev => [...prev, { id: currentMessageId!, type: 'text', content: msg.data, isPartial: true }]);
+                    setConversation(prev => {
+                        const newConversation = prev.filter(m => m.role !== 'user' || !m.isPartial);
+                        return [...newConversation, { id: currentMessageId!, role: 'assistant', content: msg.data, isPartial: true }];
+                    });
                 } else {
                     setConversation(prev => prev.map(m =>
                         m.id === currentMessageId ? { ...m, content: m.content + msg.data } : m
@@ -111,6 +130,9 @@ export const useChatSession = () => {
         };
 
         startAudio(handleAudioData);
+
+        // Add a temporary user message
+        setConversation(prev => [...prev, {id: 'user-turn', role: 'user', content: 'Listening...', isPartial: true}]);
 
     }, [startAudio, playAudio, handleAudioData]);
 
@@ -124,6 +146,9 @@ export const useChatSession = () => {
         setIsServerReadyForData(false);
         sessionStorage.removeItem('sessionId');
         sessionStorage.removeItem('currentMessageId');
+        
+        setConversation(prev => prev.map(m => m.isPartial ? {...m, isPartial: false, content: m.content === 'Listening...' ? 'Session ended.' : m.content} : m));
+
         if (window.setVoiceWaveActive) {
             window.setVoiceWaveActive(false);
         }
@@ -142,5 +167,8 @@ export const useChatSession = () => {
         conversation,
         startSession,
         stopSession,
+        analyser,
+        isThinking,
+        isSpeaking,
     };
 }; 

@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
+import styles from '../../styles/Auth.module.css';
 
 const AuthLayout = () => {
     const [isLogin, setIsLogin] = useState(true);
@@ -9,28 +10,23 @@ const AuthLayout = () => {
     const switchToLogin = () => setIsLogin(true);
 
     return (
-        <div className="login-page-wrapper">
-            <div className="login-info-column">
-                <div className="login-logo">
-                    <img src="/images/pistah.svg" alt="Pistah Logo" />
+        <div className={styles.authPage}>
+            <div className={styles.authContainer}>
+                <div className={styles.authFormContainer}>
+                    {isLogin ? (
+                        <LoginForm switchToRegister={switchToRegister} />
+                    ) : (
+                        <RegisterForm switchToLogin={switchToLogin} />
+                    )}
                 </div>
-                <div className="login-testimonial-image">
-                    <img src="/images/person-learning.jpg" alt="Person learning with headphones" />
+                <div className={styles.authImageContainer}>
+                    <img src="/images/person-learning.jpg" alt="Decorative background" className={styles.authBgImage} />
+                    <div className={styles.imageOverlay}></div>
+                    <div className={styles.imageContent}>
+                        <h1 className={styles.imageTitle}>Welcome to Pistah</h1>
+                        <p className={styles.imageSubtitle}>Your personal AI-powered speaking practice partner. Get ready to ace your IELTS test!</p>
+                    </div>
                 </div>
-                <div className="login-testimonial-text">
-                    <blockquote>
-                        "Simply all the tools that my team and I need."
-                    </blockquote>
-                    <p className="testimonial-author">Karen Yue</p>
-                    <p className="testimonial-role">Director of Digital Marketing Technology</p>
-                </div>
-            </div>
-            <div className="login-form-column">
-                {isLogin ? (
-                    <LoginForm switchToRegister={switchToRegister} />
-                ) : (
-                    <RegisterForm switchToLogin={switchToLogin} />
-                )}
             </div>
         </div>
     );

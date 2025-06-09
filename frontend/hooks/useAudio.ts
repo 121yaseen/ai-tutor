@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 // Helper function to stop a media stream
 const stopMicrophone = (stream: MediaStream | null) => {
@@ -8,38 +8,57 @@ const stopMicrophone = (stream: MediaStream | null) => {
 };
 
 export const useAudio = () => {
-    const audioRecorderNode = useRef<AudioWorkletNode | null>(null);
-    const audioPlayerNode = useRef<AudioWorkletNode | null>(null);
-    const audioRecorderContext = useRef<AudioContext | null>(null);
-    const audioPlayerContext = useRef<AudioContext | null>(null);
-    const micStream = useRef<MediaStream | null>(null);
+    const audioContextRef = useRef<AudioContext | null>(null);
+    const micStreamRef = useRef<MediaStream | null>(null);
+    const recorderNodeRef = useRef<AudioWorkletNode | null>(null);
+    const playerNodeRef = useRef<AudioWorkletNode | null>(null);
+    const audioSourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
+    const analyserRef = useRef<AnalyserNode | null>(null);
+    
+    const [analyser, setAnalyser] = useState<AnalyserNode | null>(null);
 
     const startAudio = useCallback(async (onAudioData: (data: ArrayBuffer) => void) => {
         try {
-            // Player setup
-            const playerCtx = new AudioContext({ sampleRate: 24000 });
-            audioPlayerContext.current = playerCtx;
-            await playerCtx.audioWorklet.addModule('/js/pcm-player-processor.js');
-            const playerNode = new AudioWorkletNode(playerCtx, 'pcm-player-processor');
-            playerNode.connect(playerCtx.destination);
-            audioPlayerNode.current = playerNode;
+            let context = audioContextRef.current;
+            if (!context) {
+                context = new AudioContext({ sampleRate: 24000 });
+                audioContextRef.current = context;
+            }
 
-            // Recorder setup
-            const recorderCtx = new AudioContext({ sampleRate: 16000 });
-            audioRecorderContext.current = recorderCtx;
+            if (context.state === 'suspended') {
+                await context.resume();
+            }
+
+            if (!analyserRef.current) {
+                const analyserNode = context.createAnalyser();
+                analyserNode.fftSize = 2048;
+                analyserRef.current = analyserNode;
+                setAnalyser(analyserNode);
+            }
+
+            if (!playerNodeRef.current) {
+                await context.audioWorklet.addModule('/js/pcm-player-processor.js');
+                const playerNode = new AudioWorkletNode(context, 'pcm-player-processor');
+                playerNode.connect(analyserRef.current!).connect(context.destination);
+                playerNodeRef.current = playerNode;
+            }
+
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            micStream.current = stream;
+            micStreamRef.current = stream;
             
-            const source = recorderCtx.createMediaStreamSource(stream);
-            await recorderCtx.audioWorklet.addModule('/js/pcm-recorder-processor.js');
-            const recorderNode = new AudioWorkletNode(recorderCtx, 'pcm-recorder-processor');
+            const source = context.createMediaStreamSource(stream);
+            audioSourceRef.current = source;
+
+            await context.audioWorklet.addModule('/js/pcm-recorder-processor.js');
+            const recorderNode = new AudioWorkletNode(context, 'pcm-recorder-processor', {
+                processorOptions: { inputSampleRate: context.sampleRate, outputSampleRate: 16000 }
+            });
             
-            recorderNode.port.onmessage = (event) => {
-                onAudioData(event.data);
-            };
+            recorderNode.port.onmessage = (event) => onAudioData(event.data);
             
             source.connect(recorderNode);
-            audioRecorderNode.current = recorderNode;
+            source.connect(analyserRef.current!);
+            recorderNodeRef.current = recorderNode;
 
         } catch (error) {
             console.error("Error starting audio:", error);
@@ -47,38 +66,26 @@ export const useAudio = () => {
     }, []);
 
     const stopAudio = useCallback(() => {
-        // Stop microphone stream
-        stopMicrophone(micStream.current);
-        micStream.current = null;
+        stopMicrophone(micStreamRef.current);
+        micStreamRef.current = null;
 
-        // Clean up recorder
-        if (audioRecorderNode.current) {
-            audioRecorderNode.current.port.postMessage({ command: 'stop' });
-            audioRecorderNode.current.disconnect();
-            audioRecorderNode.current = null;
+        if (recorderNodeRef.current) {
+            recorderNodeRef.current.disconnect();
+            recorderNodeRef.current = null;
         }
-        if (audioRecorderContext.current) {
-            audioRecorderContext.current.close();
-            audioRecorderContext.current = null;
+        
+        if (audioSourceRef.current) {
+            audioSourceRef.current.disconnect();
+            audioSourceRef.current = null;
         }
-
-        // Clean up player
-        if (audioPlayerNode.current) {
-            audioPlayerNode.current.port.postMessage({ command: 'stop' });
-            audioPlayerNode.current.disconnect();
-            audioPlayerNode.current = null;
-        }
-        if (audioPlayerContext.current) {
-            audioPlayerContext.current.close();
-            audioPlayerContext.current = null;
-        }
+        // Do not close the context or disconnect the player/analyser, just stop the source
     }, []);
 
     const playAudio = useCallback((audioData: ArrayBuffer) => {
-        if (audioPlayerNode.current) {
-            audioPlayerNode.current.port.postMessage(audioData);
+        if (playerNodeRef.current && audioContextRef.current?.state === 'running') {
+            playerNodeRef.current.port.postMessage(audioData, [audioData]);
         }
     }, []);
 
-    return { startAudio, stopAudio, playAudio };
+    return { startAudio, stopAudio, playAudio, analyser };
 }; 
