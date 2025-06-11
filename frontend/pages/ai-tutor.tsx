@@ -17,7 +17,13 @@ const AiTutorPage: NextPage = () => {
   }, [isLoading, user, router]);
 
   if (isLoading || !user) {
-    return <div>Loading...</div>; // Or a proper loading spinner
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <div className="thinking-indicator">
+            <span></span><span></span><span></span>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -26,7 +32,6 @@ const AiTutorPage: NextPage = () => {
         <title>AI Tutor Voice Assistant</title>
       </Head>
       <ChatInterface />
-      <Script src="/js/voiceWave.js" strategy="lazyOnload" />
     </>
   );
 };

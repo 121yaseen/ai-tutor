@@ -24,7 +24,7 @@ const ChatInterface = () => {
     };
 
     return (
-        <div className={styles.chatContainer}>
+        <div className={`${styles.chatContainer} ${conversation.length > 0 ? styles.hasMessages : ''}`}>
             <button onClick={logout} className={styles.logoutButton}>Logout</button>
             
             <div className={styles.conversationContainer}>
@@ -47,12 +47,11 @@ const ChatInterface = () => {
             <div className={styles.controlsContainer}>
                 <div className={styles.visualizerWrapper}>
                     <VoiceVisualizer analyser={analyser} isActive={isSessionActive} />
-                    {!isSessionActive && (
-                        <div className={styles.introText}>
-                            <h1 className={styles.greeting}>{getGreeting()}</h1>
-                            <p className={styles.cta}>Tap the mic to start your session</p>
-                        </div>
-                    )}
+                </div>
+                
+                <div className={styles.introText} style={{ opacity: isSessionActive ? 0 : 1, transition: 'opacity 0.3s ease' }}>
+                    <h1 className={styles.greeting}>{getGreeting()}</h1>
+                    <p className={styles.cta}>Tap the mic to start your session</p>
                 </div>
 
                 <div className={styles.micButtonWrapper}>

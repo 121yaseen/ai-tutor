@@ -11,68 +11,67 @@ const VoiceVisualizer: React.FC<VoiceVisualizerProps> = ({ analyser, isActive })
     const animationFrameId = useRef<number | null>(null);
 
     useEffect(() => {
-        if (!analyser || !canvasRef.current || !isActive) {
-            if (animationFrameId.current) {
-                cancelAnimationFrame(animationFrameId.current);
-            }
-            return;
-        }
-
         const canvas = canvasRef.current;
+        if (!canvas) return;
+
         const canvasCtx = canvas.getContext('2d');
-        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+        if (!canvasCtx) return;
 
-        const draw = () => {
-            if (!canvasCtx || !analyser) return;
-
+        const draw = (time: number) => {
             animationFrameId.current = requestAnimationFrame(draw);
-            analyser.getByteTimeDomainData(dataArray);
-
             const { width, height } = canvas;
             canvasCtx.clearRect(0, 0, width, height);
 
-            const baseAmplitude = 5;
-            const waveColor = 'rgba(255, 255, 255, 0.7)';
-            
-            let maxAmplitude = 0;
-            for (let i = 0; i < dataArray.length; i++) {
-                const v = dataArray[i] / 128.0;
-                const amplitude = Math.abs(v - 1.0);
-                if(amplitude > maxAmplitude) {
-                    maxAmplitude = amplitude;
-                }
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const baseRadius = Math.min(width, height) / 4;
+            const numPoints = 128;
+
+            let dataArray: Uint8Array | null = null;
+            if (analyser) {
+                dataArray = new Uint8Array(analyser.frequencyBinCount);
+                analyser.getByteTimeDomainData(dataArray);
             }
-            
-            const dynamicAmplitude = baseAmplitude + (maxAmplitude * height / 3);
 
-            const drawWave = (offset: number, alpha: number, speed: number) => {
+            const drawWave = (color: string, lineWidth: number, amplitude: number, offset: number) => {
                 canvasCtx.beginPath();
-                canvasCtx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
-                canvasCtx.lineWidth = 2;
+                canvasCtx.strokeStyle = color;
+                canvasCtx.lineWidth = lineWidth;
+                canvasCtx.globalAlpha = 0.7;
 
-                const sliceWidth = width * 1.0 / dataArray.length;
-                let x = 0;
-
-                for (let i = 0; i < dataArray.length; i++) {
-                    const v = dataArray[i] / 128.0;
-                    const y = (v * dynamicAmplitude) + (height / 2) + Math.sin(i * 0.1 + (Date.now() * speed)) * offset;
+                for (let i = 0; i <= numPoints; i++) {
+                    const angle = (i / numPoints) * 2 * Math.PI;
+                    const dataIndex = Math.floor((i / numPoints) * (dataArray?.length || 1));
                     
+                    let displacement = 0;
+                    if (isActive && dataArray) {
+                        displacement = ((dataArray[dataIndex] - 128) / 128) * amplitude;
+                    } else {
+                        const passiveWave = Math.sin(angle * 10 + time * 0.002) * 2;
+                        const breathing = Math.sin(time * 0.001) * 3;
+                        displacement = passiveWave + breathing;
+                    }
+
+                    const radius = baseRadius + displacement + offset;
+                    const x = centerX + radius * Math.cos(angle);
+                    const y = centerY + radius * Math.sin(angle);
+
                     if (i === 0) {
                         canvasCtx.moveTo(x, y);
                     } else {
                         canvasCtx.lineTo(x, y);
                     }
-                    x += sliceWidth;
                 }
+                canvasCtx.closePath();
                 canvasCtx.stroke();
             };
             
-            drawWave(5, 0.4, 0.001);
-            drawWave(10, 0.6, 0.002);
-            drawWave(2, 0.2, 0.003);
+            drawWave('#0084ff', 1.5, baseRadius * 0.4, 0);
+            drawWave('rgba(0, 132, 255, 0.5)', 1, baseRadius * 0.5, 5);
+            drawWave('rgba(0, 132, 255, 0.2)', 0.5, baseRadius * 0.3, -5);
         };
 
-        draw();
+        draw(0);
 
         return () => {
             if (animationFrameId.current) {
@@ -80,6 +79,19 @@ const VoiceVisualizer: React.FC<VoiceVisualizerProps> = ({ analyser, isActive })
             }
         };
     }, [analyser, isActive]);
+
+    // Ensure canvas is scaled correctly for high-DPI displays
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (canvas) {
+            const dpr = window.devicePixelRatio || 1;
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            const ctx = canvas.getContext('2d');
+            ctx?.scale(dpr, dpr);
+        }
+    }, []);
 
     return <canvas ref={canvasRef} className={styles.voiceVisualizer} />;
 };

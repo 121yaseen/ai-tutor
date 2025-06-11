@@ -1,18 +1,21 @@
-class PCMProcessor extends AudioWorkletProcessor {
-  constructor() {
-    super();
+class PcmRecorderProcessor extends AudioWorkletProcessor {
+  constructor(options) {
+    super(options);
+    // The raw PCM data buffer
+    this.buffer = null;
   }
 
-  process(inputs, outputs, parameters) {
-    if (inputs.length > 0 && inputs[0].length > 0) {
-      // Use the first channel
-      const inputChannel = inputs[0][0];
-      // Copy the buffer to avoid issues with recycled memory
-      const inputCopy = new Float32Array(inputChannel);
-      this.port.postMessage(inputCopy);
+  process(inputs) {
+    const input = inputs[0];
+    if (input.length > 0) {
+      const channelData = input[0];
+      if (channelData instanceof Float32Array) {
+        // Post the underlying ArrayBuffer
+        this.port.postMessage(channelData.buffer, [channelData.buffer]);
+      }
     }
     return true;
   }
 }
 
-registerProcessor("pcm-recorder-processor", PCMProcessor);
+registerProcessor("pcm-recorder-processor", PcmRecorderProcessor);

@@ -5,81 +5,95 @@
     display: flex;
     flex-direction: column;
     height: 100vh;
-    width: 100vw;
-    background-color: #0C0A1E; /* Dark blue-purple background */
-    color: #EAEAEA;
+    width: 100%;
+    background: #f0f2f5; /* Light gray background */
+    color: #1c1e21; /* Dark text color */
     font-family: 'Inter', sans-serif;
+    justify-content: center; /* Center controls when no messages */
+    align-items: center;
     overflow: hidden;
     position: relative;
+}
+
+.chatContainer.hasMessages {
+    justify-content: flex-start;
 }
 
 .logoutButton {
     position: absolute;
     top: 20px;
     right: 20px;
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
+    background: #e4e6eb; /* Light gray button */
+    color: #1c1e21; /* Dark text */
     border: none;
-    padding: 10px 20px;
+    padding: 10px 15px;
     border-radius: 20px;
     cursor: pointer;
-    font-size: 14px;
-    z-index: 10;
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+
+.logoutButton:hover {
+    background: #d8dbdf; /* Slightly darker on hover */
 }
 
 .conversationContainer {
-    flex-grow: 1;
+    width: 100%;
     overflow-y: auto;
     padding: 20px;
-    padding-bottom: 350px; /* Space for controls */
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 12px;
+}
+
+.chatContainer.hasMessages .conversationContainer {
+    flex-grow: 1;
 }
 
 .message {
-    padding: 15px 20px;
+    padding: 12px 18px;
     border-radius: 18px;
     max-width: 70%;
-    line-height: 1.6;
+    line-height: 1.5;
+    word-wrap: break-word;
+    align-self: flex-start;
 }
 
-.message p {
-    margin: 0;
+.message.user {
+    background: #0084ff; /* Blue for user messages */
+    color: white;
+    align-self: flex-end;
+}
+
+.message.assistant {
+    background: #e4e6eb; /* Light gray for assistant */
+    color: #1c1e21; /* Dark text */
+    align-self: flex-start;
 }
 
 .messageRole {
     font-weight: 600;
-    margin-bottom: 8px;
+    font-size: 0.8rem;
+    margin-bottom: 4px;
     display: block;
-    font-size: 0.9em;
-    opacity: 0.8;
+    color: #65676b; /* Medium gray for role */
 }
 
-.user {
-    background-color: #38325E;
-    align-self: flex-end;
-    border-bottom-right-radius: 4px;
-}
-
-.assistant {
-    background-color: #1E1A3A;
-    align-self: flex-start;
-    border-bottom-left-radius: 4px;
+.message.user .messageRole {
+    color: rgba(255, 255, 255, 0.8);
 }
 
 .thinkingIndicator {
     display: flex;
     align-items: center;
-    padding: 10px 0;
+    gap: 5px;
 }
 
 .thinkingIndicator span {
-    height: 8px;
     width: 8px;
-    background-color: #8A63D2;
+    height: 8px;
     border-radius: 50%;
-    margin: 0 3px;
+    background-color: #0084ff;
     animation: bounce 1.4s infinite ease-in-out both;
 }
 
@@ -91,80 +105,84 @@
     40% { transform: scale(1.0); }
 }
 
-
 .controlsContainer {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 350px;
     display: flex;
     flex-direction: column;
-    justify-content: flex-end;
     align-items: center;
-    background: linear-gradient(to top, rgba(12, 10, 30, 1) 50%, rgba(12, 10, 30, 0));
-    padding-bottom: 40px;
+    justify-content: center;
+    padding: 20px 0;
+    background: #ffffff; /* White background for controls */
+    border-top: 1px solid #ced0d4; /* Light border */
+    position: relative;
+    flex-shrink: 0;
+    width: 100%; /* Ensure it takes full width */
 }
 
 .visualizerWrapper {
-    height: 150px;
+    height: 180px; /* Reduced height to move it up */
     width: 100%;
     position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
 }
 
 .voiceVisualizer {
+    width: 100%;
+    height: 100%;
     position: absolute;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
 }
 
 .introText {
     text-align: center;
-    color: rgba(255, 255, 255, 0.8);
+    color: #65676b; /* Medium gray for text */
+    margin-top: -20px; /* Pull text closer to the visualizer */
+    margin-bottom: 20px;
 }
 
 .greeting {
     font-size: 2rem;
-    font-weight: 600;
-    margin: 0;
+    font-weight: 700;
+    color: #1c1e21; /* Darker for greeting */
 }
 
 .cta {
-    font-size: 1rem;
-    opacity: 0.7;
+    font-size: 1.1rem;
 }
 
-
 .micButtonWrapper {
-    margin-top: 30px;
+    margin-top: 20px;
 }
 
 .micButton {
-    background-color: #8A63D2; /* Vibrant Purple */
+    background: linear-gradient(145deg, #0084ff, #005fbd);
     border: none;
     width: 80px;
     height: 80px;
     border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
     color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    box-shadow: 0 0 20px rgba(138, 99, 210, 0.5);
+    box-shadow: 0 4px 15px rgba(0, 132, 255, 0.4);
     transition: all 0.2s ease-in-out;
 }
 
 .micButton:hover {
-    transform: scale(1.1);
-    box-shadow: 0 0 30px rgba(138, 99, 210, 0.8);
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(0, 132, 255, 0.5);
 }
 
 .micButton.active {
-    background-color: #F44336; /* Red for active/stop */
-    box-shadow: 0 0 20px rgba(244, 67, 54, 0.5);
+    background: linear-gradient(145deg, #ff4d4d, #c81e1e);
+    box-shadow: 0 4px 15px rgba(255, 77, 77, 0.5);
+}
+
+.micButton.active:hover {
+    box-shadow: 0 6px 20px rgba(255, 77, 77, 0.6);
+}
+
+.micButton svg {
+    width: 36px;
+    height: 36px;
 } 

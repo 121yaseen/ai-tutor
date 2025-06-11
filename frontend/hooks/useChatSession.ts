@@ -23,10 +23,9 @@ const base64ToArray = (base64: string) => {
     return bytes.buffer;
 };
 
-
 interface Message {
     id: string;
-    role: 'user' | 'assistant';
+    role: 'user' | 'assistant' | 'error';
     content: string;
     isPartial?: boolean;
 }
@@ -42,7 +41,7 @@ export const useChatSession = () => {
     const [isSessionActive, setIsSessionActive] = useState(false);
     const [isServerReadyForData, setIsServerReadyForData] = useState(false);
     const [conversation, setConversation] = useState<Message[]>([]);
-    const { startAudio, stopAudio, playAudio, analyser } = useAudio();
+    const { startRecording, stopRecording, playAudio, analyser } = useAudio();
     const eventSource = useRef<EventSource | null>(null);
     const [isThinking, setIsThinking] = useState(false);
     const [isSpeaking, setIsSpeaking] = useState(false);
@@ -54,7 +53,11 @@ export const useChatSession = () => {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ mime_type: "audio/pcm", data: base64Data }),
-            }).catch(console.error);
+            }).catch(error => {
+                console.error("Error sending audio data:", error);
+                setConversation(prev => [...prev, {id: 'error-msg', role: 'error', content: 'Failed to send audio. Please check your connection.'}]);
+                stopSession();
+            });
         }
     }, [isServerReadyForData]);
 
@@ -65,16 +68,13 @@ export const useChatSession = () => {
         const sessionId = Math.floor(Math.random() * 1e9).toString();
         sessionStorage.setItem('sessionId', sessionId);
 
-        if (window.setVoiceWaveActive) {
-            window.setVoiceWaveActive(true);
-        }
-
         const es = new EventSource(`/events/${sessionId}?is_audio=true`);
         eventSource.current = es;
 
         es.onopen = () => console.log("SSE connection opened.");
         es.onerror = () => {
-            console.log("SSE connection error or closed.");
+            console.error("SSE connection error or closed.");
+            setConversation(prev => [...prev, {id: 'error-msg', role: 'error', content: 'Connection to server lost. Please restart the session.'}]);
             stopSession();
         };
         es.onmessage = (event) => {
@@ -87,7 +87,6 @@ export const useChatSession = () => {
 
             if (msg.mime_type === "text/plain" && msg.data.trim() === "[thinking]") {
                 setIsThinking(true);
-                // Clear any previous user "speaking" message
                 setConversation(prev => prev.filter(m => m.id !== 'user-turn'));
                 return;
             }
@@ -95,7 +94,6 @@ export const useChatSession = () => {
             if (msg.turn_complete) {
                 setIsThinking(false);
                 setIsSpeaking(false);
-                // Finalize the last message by removing the partial flag
                 setConversation(prev => prev.map(m => 
                     m.id === sessionStorage.getItem('currentMessageId') ? { ...m, isPartial: false } : m
                 ));
@@ -129,32 +127,25 @@ export const useChatSession = () => {
             }
         };
 
-        startAudio(handleAudioData);
-
-        // Add a temporary user message
+        startRecording(handleAudioData);
         setConversation(prev => [...prev, {id: 'user-turn', role: 'user', content: 'Listening...', isPartial: true}]);
 
-    }, [startAudio, playAudio, handleAudioData]);
+    }, [startRecording, playAudio, handleAudioData]);
 
     const stopSession = useCallback(() => {
         if (eventSource.current) {
             eventSource.current.close();
             eventSource.current = null;
         }
-        stopAudio();
+        stopRecording();
         setIsSessionActive(false);
         setIsServerReadyForData(false);
         sessionStorage.removeItem('sessionId');
         sessionStorage.removeItem('currentMessageId');
         
         setConversation(prev => prev.map(m => m.isPartial ? {...m, isPartial: false, content: m.content === 'Listening...' ? 'Session ended.' : m.content} : m));
-
-        if (window.setVoiceWaveActive) {
-            window.setVoiceWaveActive(false);
-        }
-    }, [stopAudio]);
+    }, [stopRecording]);
     
-    // Cleanup on unmount
     useEffect(() => {
         return () => {
             stopSession();
