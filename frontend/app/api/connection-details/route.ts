@@ -14,6 +14,7 @@ export type ConnectionDetails = {
   roomName: string;
   participantName: string;
   participantToken: string;
+  userEmail: string;
 };
 
 export async function GET() {
@@ -28,11 +29,26 @@ export async function GET() {
       throw new Error("LIVEKIT_API_SECRET is not defined");
     }
 
+    //Get the current user from the session
+    const { createClient } = await import('@/lib/supabase/server')
+    const supabase = createClient()
+    
+    const { data: { user }, error } = await supabase.auth.getUser()
+    
+    if (error || !user) {
+      return new NextResponse('Unauthorized', { status: 401 })
+    }
+    console.log(user.email)
+
     // Generate participant token
     const participantIdentity = `voice_assistant_user_${Math.floor(Math.random() * 10_000)}`;
     const roomName = `voice_assistant_room_${Math.floor(Math.random() * 10_000)}`;
     const participantToken = await createParticipantToken(
-      { identity: participantIdentity },
+      { 
+        identity: participantIdentity, 
+        name: user.email,
+        metadata: JSON.stringify({ userEmail: user.email })
+      },
       roomName
     );
 
@@ -42,6 +58,7 @@ export async function GET() {
       roomName,
       participantToken: participantToken,
       participantName: participantIdentity,
+      userEmail: user.email ?? "",
     };
     const headers = new Headers({
       "Cache-Control": "no-store",
@@ -66,7 +83,11 @@ function createParticipantToken(userInfo: AccessTokenOptions, roomName: string) 
     canPublish: true,
     canPublishData: true,
     canSubscribe: true,
+    roomCreate: true,
+    roomAdmin: true,
   };
   at.addGrant(grant);
+  
   return at.toJwt();
 }
+

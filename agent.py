@@ -21,6 +21,7 @@ load_dotenv()
 DATA_PATH = Path("data/student.json")
 
 class StudentPerformance(BaseModel):
+    email: str
     name: str
     age: int
     history: List[Dict] = Field(default_factory=list)
@@ -48,23 +49,28 @@ class StudentDB:
     def save(self):
         self.path.write_bytes(orjson.dumps(self.data))
 
-    def get_student(self, name: str) -> Optional[StudentPerformance]:
+    def get_student(self, email: str) -> Optional[StudentPerformance]:
         self._load()
-        if name in self.data:
-            return StudentPerformance(**self.data[name])
+        if email in self.data:
+            return StudentPerformance(**self.data[email])
         return None
 
     def upsert_student(self, student: StudentPerformance):
-        self.data[student.name] = student.model_dump()
+        self.data[student.email] = student.model_dump()
         self.save()
-        print(f"[LOG] Saved/Updated student: {student.name} | Data: {student.model_dump()}")
+        print(f"[LOG] Saved/Updated student: {student.email} | Data: {student.model_dump()}")
 
 db = StudentDB()
 
+# Global variable to store current user email
+current_user_email = None
+
 @function_tool
-async def get_student(name: str) -> str:
+async def get_student() -> str:
     """Get student performance data from the database."""
-    student = db.get_student(name)
+    if not current_user_email:
+        return "User email not available."
+    student = db.get_student(current_user_email)
     if student:
         return student.model_dump_json()
     return "Student not found."
@@ -72,16 +78,20 @@ async def get_student(name: str) -> str:
 @function_tool
 async def create_student(name: str, age: int) -> str:
     """Creates a new student profile."""
-    if db.get_student(name):
+    if not current_user_email:
+        return "User email not available."
+    if db.get_student(current_user_email):
         return "Student already exists."
-    student = StudentPerformance(name=name, age=age)
+    student = StudentPerformance(email=current_user_email, name=name, age=age)
     db.upsert_student(student)
     return "Student profile created."
 
 @function_tool
-async def add_test_result(name: str, result: Dict) -> str:
+async def add_test_result(result: Dict) -> str:
     """Adds a new test result to a student's history."""
-    student = db.get_student(name)
+    if not current_user_email:
+        return "User email not available."
+    student = db.get_student(current_user_email)
     if not student:
         return "Student not found. Cannot add test result."
     student.history.append(result)
@@ -91,7 +101,6 @@ async def add_test_result(name: str, result: Dict) -> str:
 
 IELTS_QUESTIONS = {
     "part1": [
-        "Can you tell me your full name?",
         "Where are you from?",
         "Do you work or study?",
         "What do you like to do in your free time?",
@@ -115,14 +124,10 @@ You are a smart, efficient, and supportive IELTS Speaking Examiner Agent. Your r
 
 Your behavior must strictly follow these steps:
 
-1. **Greet the user**: Warmly introduce yourself as the AI IELTS speaking examiner.
+1. **Greet the user**: Warmly introduce yourself as the Pistah AI IELTS speaking examiner.
 
 2. **Collect student details**:
-   - Ask for their full name first.
-   - Then ask for their age.
-
-3. **After age is received**:
-   - **Tool call:** Use the `get_student(name)` tool to check if this student already exists.
+   - **Tool call:** Use the `get_student()` tool to check the student name.
 
 4. **If student is found**:
    - Summarize their previous IELTS attempts.
@@ -155,7 +160,7 @@ Your behavior must strictly follow these steps:
      - Coherence & fluency
 
 9. **Save Final Test Result**:
-   - **Tool call:** Use `add_test_result(name, result)` to store a result dictionary containing:
+   - **Tool call:** Use `add_test_result(result)` to store a result dictionary containing:
      - All question-answer pairs
      - Band score
      - Analysis
@@ -179,6 +184,23 @@ Your behavior must strictly follow these steps:
 
 
 async def entrypoint(ctx: agents.JobContext):
+    global current_user_email
+    
+    # Extract user email from room metadata
+    try:
+        # Get metadata from room
+        metadata = ctx.room.metadata
+        
+        if metadata:
+            import json
+            metadata_dict = json.loads(metadata)
+            current_user_email = metadata_dict.get("userEmail")
+            print(f"[LOG] User email set to: {current_user_email}")
+        else:
+            print("[LOG] No room metadata found")
+    except Exception as e:
+        print(f"[LOG] Error parsing room metadata: {e}")
+    
     session = AgentSession(
         llm=openai.realtime.RealtimeModel(voice="alloy"),
     )
@@ -193,6 +215,37 @@ async def entrypoint(ctx: agents.JobContext):
         ),
     )
     await ctx.connect()
+    
+    # Add participant entry point and wait for user to join
+    print(f"[LOG] Local participant: {ctx.room.local_participant}")
+    
+    # Wait for user participant to join and get their metadata
+    async def wait_for_user_participant():
+        attempts = 0
+        while attempts < 10:  # Try for 5 seconds
+            for participant in ctx.room.remote_participants.values():
+                print(f"[LOG] Found participant: {participant.identity}, metadata: {participant.metadata}")
+                if participant.metadata:
+                    try:
+                        import json
+                        metadata_dict = json.loads(participant.metadata)
+                        user_email = metadata_dict.get("userEmail")
+                        print(f"[LOG] Parsed userEmail: {user_email}")
+                        if user_email:
+                            global current_user_email
+                            current_user_email = user_email
+                            print(f"[LOG] User email set from participant metadata: {current_user_email}")
+                            return True
+                    except Exception as e:
+                        print(f"[LOG] Error parsing participant metadata: {e}")
+            await asyncio.sleep(0.5)
+            attempts += 1
+        print("[LOG] No user participant with email found")
+        return False
+    
+    # Wait for user to join
+    await wait_for_user_participant()
+    
     try:
         await asyncio.wait_for(
             session.generate_reply(
