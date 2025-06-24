@@ -4,76 +4,158 @@ This project is a voice-based AI assistant that acts as an IELTS Speaking Examin
 
 ![App screenshot](./frontend/.github/assets/frontend-screenshot.jpeg)
 
-## Project Structure
+## 🏗️ Project Structure
 
-The project is divided into two main parts:
+The project has been refactored into a clean, modular structure:
 
--   **Backend (`agent.py`):** An AI agent built with the `livekit-agents` framework that simulates the IELTS speaking test, analyzes the user's performance, and provides feedback.
--   **Frontend (`frontend` directory):** A Next.js application that provides a user interface for interacting with the AI agent using real-time voice communication.
+```
+ai-voice-assistant-livekit/
+├── backend/                          # Python backend application
+│   ├── src/                         # Source code
+│   │   ├── agents/                  # AI agent implementations
+│   │   │   └── ielts_examiner_agent.py
+│   │   ├── models/                  # Data models
+│   │   │   └── student_models.py
+│   │   ├── database/                # Database management
+│   │   │   └── student_db.py
+│   │   ├── tools/                   # Agent function tools
+│   │   │   └── agent_tools.py
+│   │   ├── config/                  # Configuration files
+│   │   │   └── ielts_questions.py
+│   │   └── main.py                  # Main application entry point
+│   ├── data/                        # Data storage
+│   │   └── student.json
+│   └── requirements.txt             # Python dependencies
+├── frontend/                        # Next.js frontend application
+│   ├── app/                        # Next.js app router
+│   ├── components/                 # React components
+│   ├── hooks/                      # Custom React hooks
+│   └── lib/                        # Utility libraries
+├── docs/                           # Documentation
+│   ├── DESIGN_PLAN.md             # Architecture design plan
+│   └── PROJECT_README.md          # Original project documentation
+├── scripts/                        # Utility scripts
+│   ├── setup.sh                   # Project setup script
+│   ├── run_backend.sh             # Backend runner script
+│   └── run_frontend.sh            # Frontend runner script
+├── config/                         # Global configuration
+├── shared/                         # Shared types and utilities
+└── venv/                          # Python virtual environment
+```
 
-## Features
+## ✨ Features
 
--   **Realistic IELTS Speaking Test Simulation:** The agent simulates all three parts of the IELTS speaking test.
--   **AI-Powered Analysis:** The agent uses a Large Language Model (LLM) to analyze the user's performance and provide a band score.
--   **Detailed Feedback:** The user receives detailed feedback on their fluency, coherence, vocabulary, grammar, and pronunciation.
--   **Real-time Voice Communication:** The user can speak to the agent in real-time using their microphone.
--   **Conversation Transcription:** The conversation between the user and the agent is transcribed and displayed on the screen.
+- **Realistic IELTS Speaking Test Simulation:** The agent simulates all three parts of the IELTS speaking test.
+- **AI-Powered Analysis:** The agent uses a Large Language Model (LLM) to analyze the user's performance and provide a band score.
+- **Detailed Feedback:** The user receives detailed feedback on their fluency, coherence, vocabulary, grammar, and pronunciation.
+- **Real-time Voice Communication:** The user can speak to the agent in real-time using their microphone.
+- **Conversation Transcription:** The conversation between the user and the agent is transcribed and displayed on the screen.
+- **User Authentication:** Secure login/signup with Supabase authentication.
+- **Test History:** All test results are saved and can be reviewed by the user.
 
-## Getting Started
+## 🚀 Quick Start
 
 ### Prerequisites
 
--   Python 3.9+
--   Node.js and pnpm
--   LiveKit account and API credentials
+- Python 3.9+
+- Node.js and pnpm
+- LiveKit account and API credentials
+- Supabase account (for authentication)
 
-### Installation
+### Setup
 
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/your-username/your-repository.git
-    cd your-repository
-    ```
-2.  **Backend Setup:**
-    -   Navigate to the root directory.
-    -   Create a virtual environment:
-        ```bash
-        python3 -m venv venv
-        ```
-    -   Activate the virtual environment:
-        ```bash
-        source venv/bin/activate
-        ```
-    -   Install the Python dependencies:
-        ```bash
-        pip install -r requirements.txt
-        ```
-    -   Create a `.env` file and add your LiveKit and OpenAI API credentials.
-3.  **Frontend Setup:**
-    -   Navigate to the `frontend` directory:
-        ```bash
-        cd frontend
-        ```
-    -   Install the dependencies:
-        ```bash
-        pnpm install
-        ```
-    -   Create a `.env.local` file by copying the `.env.example` file and fill in the required environment variables.
-4.  **Running the Application:**
-    -   Start the backend agent from the root directory:
-        ```bash
-        python agent.py
-        ```
-    -   Start the frontend application from the `frontend` directory:
-        ```bash
-        pnpm dev
-        ```
-    -   Open [http://localhost:3000](http://localhost:3000) in your browser.
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/your-username/ai-voice-assistant-livekit.git
+   cd ai-voice-assistant-livekit
+   ```
 
-## How It Works
+2. **Run the setup script:**
+   ```bash
+   ./scripts/setup.sh
+   ```
 
-The application uses the `livekit-agents` framework to connect the frontend to the backend agent. When the user starts the test, the frontend connects to a LiveKit room. The backend agent also joins the room and starts the test. The user's voice is streamed to the agent, which processes the audio and responds in real-time.
+3. **Configure environment variables:**
+   - Create a `.env` file in the root directory
+   - Add your LiveKit and OpenAI API credentials
+   - Create a `.env.local` file in the `frontend/` directory with Supabase credentials
 
-## Contributing
+### Running the Application
 
-Contributions are welcome! Please feel free to submit a pull request or open an issue. 
+#### Option 1: Using Scripts (Recommended)
+
+1. **Start the backend:**
+   ```bash
+   ./scripts/run_backend.sh
+   ```
+
+2. **Start the frontend (in a new terminal):**
+   ```bash
+   ./scripts/run_frontend.sh
+   ```
+
+#### Option 2: Manual Execution
+
+1. **Backend:**
+   ```bash
+   source venv/bin/activate
+   cd backend
+   python -m src.main
+   ```
+
+2. **Frontend:**
+   ```bash
+   cd frontend
+   pnpm dev
+   ```
+
+3. **Open [http://localhost:3000](http://localhost:3000) in your browser.**
+
+## 🔧 Development
+
+### Backend Architecture
+
+The backend follows a modular architecture:
+
+- **`agents/`**: Contains the main IELTS examiner agent logic
+- **`models/`**: Pydantic models for data validation
+- **`database/`**: Database abstraction layer (currently JSON, migrating to Supabase)
+- **`tools/`**: Function tools used by the AI agent
+- **`config/`**: Configuration files and constants
+
+### Frontend Architecture
+
+The frontend is built with Next.js 14 and includes:
+
+- **Authentication**: Supabase-based auth with protected routes
+- **Real-time Communication**: LiveKit WebRTC integration
+- **Voice Interface**: Real-time transcription and audio visualization
+- **Responsive Design**: Tailwind CSS with custom LiveKit styling
+
+### Tech Stack
+
+#### Backend
+- **Framework**: LiveKit Agents v1.1.1
+- **AI**: OpenAI Realtime API
+- **Data**: JSON storage (migrating to Supabase PostgreSQL)
+- **Audio**: LiveKit WebRTC + noise cancellation
+
+#### Frontend
+- **Framework**: Next.js 14 with TypeScript
+- **Authentication**: Supabase Auth
+- **Styling**: Tailwind CSS
+- **Real-time**: LiveKit Client SDK
+- **Animations**: Framer Motion
+
+## 📚 Documentation
+
+- [Design Plan](./docs/DESIGN_PLAN.md) - Detailed architecture and migration plan
+- [Original Documentation](./docs/PROJECT_README.md) - Original project information
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a pull request or open an issue.
+
+## 📄 License
+
+This project is licensed under the MIT License - see the frontend/LICENSE file for details. 
