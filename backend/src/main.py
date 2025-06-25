@@ -6,6 +6,8 @@ import orjson
 from pathlib import Path
 import asyncio
 import json
+from livekit.plugins import google
+from google.genai.types import Modality
 
 from livekit import agents
 from livekit.agents import AgentSession, Agent, RoomInputOptions, function_tool
@@ -43,10 +45,16 @@ async def entrypoint(ctx: agents.JobContext):
     except Exception as e:
         print(f"[LOG] Error parsing room metadata: {e}")
     
+    print(f"[LOG] Creating session")
     session = AgentSession(
-        llm=openai.realtime.RealtimeModel(voice="alloy"),
+        llm=google.beta.realtime.RealtimeModel(
+            model="gemini-2.0-flash-exp", 
+            modalities=[Modality.AUDIO], 
+            voice="Puck",
+            vertexai=False),
     )
 
+    print(f"[LOG] Creating agent")
     agent = IELTSExaminerAgent()
 
     await session.start(
