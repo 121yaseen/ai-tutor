@@ -45,7 +45,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#FDFBF7]">
+    <div className="flex flex-col min-h-screen bg-gray-900">
       <header className="flex justify-end p-6">
         <button
           onClick={() => setView(view === 'sign-in' ? 'sign-up' : 'sign-in')}
@@ -55,18 +55,18 @@ export default function LoginPage() {
         </button>
       </header>
       <main className="flex items-center justify-center flex-1">
-        <div className="w-full max-w-sm p-8 space-y-6 bg-white rounded-2xl shadow-lg">
+        <div className="w-full max-w-sm p-8 space-y-6 bg-gray-800 rounded-2xl shadow-lg border border-gray-700">
           {view === 'check-email' ? (
-            <p className="text-center text-gray-500">
-              Check your email at <span className="font-bold text-gray-700">{email}</span> to continue
+            <p className="text-center text-gray-400">
+              Check your email at <span className="font-bold text-gray-200">{email}</span> to continue
             </p>
           ) : (
             <>
               <div className="text-center">
-                <h1 className="text-3xl font-bold">
+                <h1 className="text-3xl font-bold text-white">
                   {view === 'sign-in' ? 'Login' : 'Create an account'}
                 </h1>
-                <p className="text-gray-500">
+                <p className="text-gray-400">
                   {view === 'sign-in'
                     ? 'Hey, Enter your details to sign in'
                     : 'Create an account to get started'}
@@ -83,7 +83,7 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
                 />
                 <input
                   type="password"
@@ -91,12 +91,12 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
                 />
 
                 {view === 'sign-in' && (
                   <div className="text-sm text-right">
-                    <a href="#" className="font-medium text-yellow-600 hover:text-yellow-500">
+                    <a href="#" className="font-medium text-yellow-400 hover:text-yellow-300">
                       Having trouble signing in?
                     </a>
                   </div>
@@ -110,36 +110,36 @@ export default function LoginPage() {
                 </button>
               </form>
 
-              {error && <p className="text-sm text-center text-red-500">{error}</p>}
+              {error && <p className="text-sm text-center text-red-400">{error}</p>}
 
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300" />
+                  <div className="w-full border-t border-gray-600" />
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">Or Sign in with</span>
+                  <span className="px-2 bg-gray-800 text-gray-400">Or Sign in with</span>
                 </div>
               </div>
 
               <div className="flex justify-center space-x-4">
-                <button className="flex items-center justify-center w-1/3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition">
+                <button className="flex items-center justify-center w-1/3 py-2 border border-gray-600 rounded-md hover:bg-gray-700 transition">
                   <GoogleIcon />
                 </button>
-                <button className="flex items-center justify-center w-1/3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition">
+                <button className="flex items-center justify-center w-1/3 py-2 border border-gray-600 rounded-md hover:bg-gray-700 transition">
                   <AppleIcon />
                 </button>
-                <button className="flex items-center justify-center w-1/3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition">
+                <button className="flex items-center justify-center w-1/3 py-2 border border-gray-600 rounded-md hover:bg-gray-700 transition">
                   <FacebookIcon />
                 </button>
               </div>
 
-              <p className="text-sm text-center text-gray-500">
+              <p className="text-sm text-center text-gray-400">
                 {view === 'sign-in'
                   ? "Don't have and account? "
                   : 'Already have an account? '}
                 <button
                   onClick={() => setView(view === 'sign-in' ? 'sign-up' : 'sign-in')}
-                  className="font-medium text-yellow-600 hover:text-yellow-500"
+                  className="font-medium text-yellow-400 hover:text-yellow-300"
                 >
                   {view === 'sign-in' ? 'Sign up here' : 'Sign in here'}
                 </button>
@@ -148,7 +148,7 @@ export default function LoginPage() {
           )}
         </div>
       </main>
-      <footer className="py-4 text-center text-gray-500">
+      <footer className="py-4 text-center text-gray-400">
         <p>© AI IELTS Examiner | 2024</p>
       </footer>
     </div>

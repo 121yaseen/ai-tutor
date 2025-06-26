@@ -14,7 +14,7 @@ export default async function ProfilePage() {
   }
 
   return (
-    <div className="container mx-auto p-4 sm:p-8">
+    <div className="container mx-auto p-4 sm:p-8 bg-gray-900 min-h-screen">
       <ProfileForm user={user} />
     </div>
   )

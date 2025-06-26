@@ -21,11 +21,13 @@ export default async function Page() {
   }
 
   return (
-    <main
-      data-lk-theme="default"
-      className="h-full grid content-center bg-[var(--lk-bg)]"
-    >
-      <VoiceAssistant />
+    <main className="h-full bg-gray-900">
+      <div
+        data-lk-theme="default"
+        className="h-full grid content-center bg-[var(--lk-bg)]"
+      >
+        <VoiceAssistant />
+      </div>
     </main>
   )
 }
