@@ -10,7 +10,8 @@ const publicSans400 = Public_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Voice Assistant",
+  title: "AI IELTS Examiner - Premium Learning Platform",
+  description: "Transform your IELTS speaking skills with AI-powered personalized coaching and real-time feedback.",
 };
 
 export default function RootLayout({
@@ -20,9 +21,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`h-full ${publicSans400.className}`}>
-      <body className="h-full flex flex-col bg-gray-900 text-gray-100">
+      <body className="h-full flex flex-col bg-gray-900 text-gray-100 antialiased">
         <Header />
-        <main className="flex-1 bg-gray-900">{children}</main>
+        <main className="flex-1 bg-gray-900 pt-20">{children}</main>
       </body>
     </html>
   );

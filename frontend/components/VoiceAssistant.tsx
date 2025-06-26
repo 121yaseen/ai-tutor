@@ -16,7 +16,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { CloseIcon } from '@/components/CloseIcon'
 import { NoAgentNotification } from '@/components/NoAgentNotification'
 import TranscriptionView from '@/components/TranscriptionView'
-import type { ConnectionDetails } from '../api/connection-details/route'
+import type { ConnectionDetails } from '@/app/api/connection-details/route'
 
 export function VoiceAssistant() {
   const [room] = useState(new Room())

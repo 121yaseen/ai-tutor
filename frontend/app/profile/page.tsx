@@ -1,6 +1,6 @@
-import ProfileForm from '@/components/ProfileForm'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import ProfileForm from '@/components/ProfileForm'
 
 export default async function ProfilePage() {
   const supabase = createClient()
@@ -13,9 +13,5 @@ export default async function ProfilePage() {
     redirect('/login')
   }
 
-  return (
-    <div className="container mx-auto p-4 sm:p-8 bg-gray-900 min-h-screen">
-      <ProfileForm user={user} />
-    </div>
-  )
+  return <ProfileForm user={user} />
 } 

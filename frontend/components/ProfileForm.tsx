@@ -1,195 +1,427 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { motion } from 'framer-motion'
 import type { User } from '@supabase/supabase-js'
 
 const countries = [
-  { code: 'IN', name: 'India 🇮🇳' },
-  { code: 'US', name: 'United States 🇺🇸' },
-  { code: 'GB', name: 'United Kingdom 🇬🇧' },
-  { code: 'CA', name: 'Canada 🇨🇦' },
-  { code: 'AU', name: 'Australia 🇦🇺' },
-  { code: 'NZ', name: 'New Zealand 🇳🇿' },
-  { code: 'IE', name: 'Ireland 🇮🇪' },
-  { code: 'DE', name: 'Germany 🇩🇪' },
-  { code: 'FR', name: 'France 🇫🇷' },
-  { code: 'CN', name: 'China 🇨🇳' },
-  { code: 'JP', name: 'Japan 🇯🇵' },
-  { code: 'KR', name: 'South Korea 🇰🇷' },
-  { code: 'BR', name: 'Brazil 🇧🇷' },
-  { code: 'MX', name: 'Mexico 🇲🇽' },
-  { code: 'ZA', name: 'South Africa 🇿🇦' },
+  { code: 'IN', name: 'India', flag: '🇮🇳' },
+  { code: 'US', name: 'United States', flag: '🇺🇸' },
+  { code: 'GB', name: 'United Kingdom', flag: '🇬🇧' },
+  { code: 'CA', name: 'Canada', flag: '🇨🇦' },
+  { code: 'AU', name: 'Australia', flag: '🇦🇺' },
+  { code: 'NZ', name: 'New Zealand', flag: '🇳🇿' },
+  { code: 'IE', name: 'Ireland', flag: '🇮🇪' },
+  { code: 'DE', name: 'Germany', flag: '🇩🇪' },
+  { code: 'FR', name: 'France', flag: '🇫🇷' },
+  { code: 'CN', name: 'China', flag: '🇨🇳' },
+  { code: 'JP', name: 'Japan', flag: '🇯🇵' },
+  { code: 'KR', name: 'South Korea', flag: '🇰🇷' },
+  { code: 'BR', name: 'Brazil', flag: '🇧🇷' },
+  { code: 'MX', name: 'Mexico', flag: '🇲🇽' },
+  { code: 'ZA', name: 'South Africa', flag: '🇿🇦' },
 ];
 
-export default function ProfileForm({
-  user,
-}: {
-  user: User
-}) {
+const targetScores = [5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0];
+const previousScores = [4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0];
+
+export default function ProfileForm({ user }: { user: User }) {
   const supabase = createClient()
-  const [loading, setLoading] = useState(true)
-  const [firstName, setFirstName] = useState<string | null>(null)
-  const [lastName, setLastName] = useState<string | null>(null)
-  const [phoneNumber, setPhoneNumber] = useState<string | null>(null)
-  const [previouslyAttempted, setPreviouslyAttempted] = useState<boolean | null>(null)
-  const [previousBandScore, setPreviousBandScore] = useState<number | null>(null)
-  const [examDate, setExamDate] = useState<string | null>(null)
-  const [targetBandScore, setTargetBandScore] = useState<number | null>(null)
-  const [country, setCountry] = useState<string | null>(null)
-  const [nativeLanguage, setNativeLanguage] = useState<string | null>(null)
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; content: string } | null>(null)
+  const router = useRouter()
 
-  const getProfile = useCallback(async () => {
-    try {
-      setLoading(true)
-
-      const { data, error, status } = await supabase
-        .from('profiles')
-        .select(`first_name, last_name, phone_number, previously_attempted_exam, previous_band_score, exam_date, target_band_score, country, native_language`)
-        .eq('id', user.id)
-        .single()
-
-      if (error && status !== 406) {
-        throw error
-      }
-
-      if (data) {
-        setFirstName(data.first_name)
-        setLastName(data.last_name)
-        setPhoneNumber(data.phone_number)
-        setPreviouslyAttempted(data.previously_attempted_exam)
-        setPreviousBandScore(data.previous_band_score)
-        setExamDate(data.exam_date)
-        setTargetBandScore(data.target_band_score)
-        setCountry(data.country)
-        setNativeLanguage(data.native_language)
-      }
-    } catch (error) {
-      setMessage({ type: 'error', content: 'Error loading user data!' })
-    } finally {
-      setLoading(false)
-    }
-  }, [user, supabase])
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    phoneNumber: '',
+    previouslyAttempted: false,
+    previousBandScore: null as number | null,
+    examDate: '',
+    targetBandScore: null as number | null,
+    country: 'IN',
+    nativeLanguage: '',
+  })
+  
+  const [isLoading, setIsLoading] = useState(false)
+  const [currentStep, setCurrentStep] = useState(0)
 
   useEffect(() => {
-    getProfile()
-  }, [user, getProfile])
+    // Load existing profile data
+    async function loadProfile() {
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .single()
 
-  async function updateProfile(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    setLoading(true)
-    setMessage(null)
-
-    const { error } = await supabase.from('profiles').upsert({
-      id: user.id,
-      first_name: firstName,
-      last_name: lastName,
-      phone_number: phoneNumber,
-      previously_attempted_exam: previouslyAttempted,
-      previous_band_score: previousBandScore,
-      exam_date: examDate,
-      target_band_score: targetBandScore,
-      country,
-      native_language: nativeLanguage,
-      updated_at: new Date().toISOString(),
-    })
-
-    if (error) {
-      setMessage({ type: 'error', content: 'Error updating the data!' })
-    } else {
-      setMessage({ type: 'success', content: 'Profile updated successfully!' })
+      if (data) {
+        setFormData({
+          firstName: data.first_name || '',
+          lastName: data.last_name || '',
+          phoneNumber: data.phone_number || '',
+          previouslyAttempted: data.previously_attempted_exam || false,
+          previousBandScore: data.previous_band_score,
+          examDate: data.exam_date || '',
+          targetBandScore: data.target_band_score,
+          country: data.country || 'IN',
+          nativeLanguage: data.native_language || '',
+        })
+      }
     }
-    setLoading(false)
+    loadProfile()
+  }, [])
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setIsLoading(true)
+
+    try {
+      const { error } = await supabase.from('profiles').update({
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        phone_number: formData.phoneNumber,
+        previously_attempted_exam: formData.previouslyAttempted,
+        previous_band_score: formData.previousBandScore,
+        exam_date: formData.examDate,
+        target_band_score: formData.targetBandScore,
+        country: formData.country,
+        native_language: formData.nativeLanguage,
+        onboarding_completed: true,
+      }).eq('id', user.id)
+
+      if (error) {
+        console.error('Error updating profile:', error)
+      } else {
+        router.push('/')
+        router.refresh()
+      }
+    } catch (error) {
+      console.error('Error:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const steps = [
+    {
+      title: 'Personal Information',
+      description: 'Tell us about yourself',
+      icon: '👤',
+      fields: ['firstName', 'lastName', 'phoneNumber', 'country', 'nativeLanguage']
+    },
+    {
+      title: 'IELTS Background',
+      description: 'Your testing experience',
+      icon: '📚',
+      fields: ['previouslyAttempted', 'previousBandScore']
+    },
+    {
+      title: 'Goals & Timeline',
+      description: 'Your learning objectives',
+      icon: '🎯',
+      fields: ['targetBandScore', 'examDate']
+    }
+  ]
+
+  const isStepValid = (stepIndex: number) => {
+    const step = steps[stepIndex]
+    return step.fields.every(field => {
+      if (field === 'previousBandScore' && !formData.previouslyAttempted) return true
+      if (field === 'examDate') return true // Optional
+      return formData[field as keyof typeof formData] !== '' && formData[field as keyof typeof formData] !== null
+    })
+  }
+
+  const nextStep = () => {
+    if (currentStep < steps.length - 1 && isStepValid(currentStep)) {
+      setCurrentStep(currentStep + 1)
+    }
+  }
+
+  const prevStep = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1)
+    }
   }
 
   return (
-    <div className="max-w-2xl mx-auto bg-gray-800 p-8 rounded-lg shadow-md border border-gray-700">
-      <h2 className="text-xl font-semibold mb-6 text-white">Profile Details</h2>
-      <form onSubmit={updateProfile} className="space-y-6">
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-300">
-            Email
-          </label>
-          <input
-            id="email"
-            type="text"
-            value={user?.email}
-            disabled
-            className="mt-1 block w-full px-3 py-2 bg-gray-600 border border-gray-600 rounded-md shadow-sm text-gray-400 focus:outline-none sm:text-sm"
-          />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label htmlFor="firstName" className="block text-sm font-medium text-gray-300">First Name</label>
-            <input type="text" id="firstName" value={firstName || ''} onChange={(e) => setFirstName(e.target.value)} className="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-white placeholder-gray-400 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 sm:text-sm" />
-          </div>
-          <div>
-            <label htmlFor="lastName" className="block text-sm font-medium text-gray-300">Last Name</label>
-            <input type="text" id="lastName" value={lastName || ''} onChange={(e) => setLastName(e.target.value)} className="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-white placeholder-gray-400 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 sm:text-sm" />
-          </div>
-        </div>
-        <div>
-          <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-300">Phone Number</label>
-          <input type="tel" id="phoneNumber" value={phoneNumber || ''} onChange={(e) => setPhoneNumber(e.target.value)} className="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-white placeholder-gray-400 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 sm:text-sm" />
-        </div>
-        <div className="flex items-center">
-          <input type="checkbox" id="previouslyAttempted" checked={previouslyAttempted || false} onChange={(e) => setPreviouslyAttempted(e.target.checked)} className="h-4 w-4 text-yellow-600 focus:ring-yellow-500 border-gray-600 bg-gray-700 rounded" />
-          <label htmlFor="previouslyAttempted" className="ml-2 block text-sm text-gray-300">Have you previously attempted the IELTS exam?</label>
-        </div>
-        {previouslyAttempted && (
-          <div>
-            <label htmlFor="previousBandScore" className="block text-sm font-medium text-gray-300">Previous Band Score</label>
-            <input type="number" id="previousBandScore" value={previousBandScore || ''} onChange={(e) => setPreviousBandScore(parseFloat(e.target.value))} step="0.5" min="0" max="10" className="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-white placeholder-gray-400 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 sm:text-sm" />
-          </div>
-        )}
-        <div>
-          <label htmlFor="examDate" className="block text-sm font-medium text-gray-300">Exam Date</label>
-          <input type="date" id="examDate" value={examDate || ''} onChange={(e) => setExamDate(e.target.value)} className="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-white placeholder-gray-400 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 sm:text-sm" />
-        </div>
-        <div>
-          <label htmlFor="targetBandScore" className="block text-sm font-medium text-gray-300">Target Band Score</label>
-          <input type="number" id="targetBandScore" value={targetBandScore || ''} onChange={(e) => setTargetBandScore(parseFloat(e.target.value))} step="0.5" min="0" max="10" className="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-white placeholder-gray-400 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 sm:text-sm" />
-        </div>
-        <div>
-          <label htmlFor="country" className="block text-sm font-medium text-gray-300">Country</label>
-          <select id="country" value={country || ''} onChange={(e) => setCountry(e.target.value)} className="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-white focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 sm:text-sm">
-            {countries.map((c) => (
-              <option key={c.code} value={c.code} className="bg-gray-700 text-white">
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="nativeLanguage" className="block text-sm font-medium text-gray-300">Native Language</label>
-          <input type="text" id="nativeLanguage" value={nativeLanguage || ''} onChange={(e) => setNativeLanguage(e.target.value)} className="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-white placeholder-gray-400 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 sm:text-sm" />
-        </div>
-        <div>
-          <button
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-black bg-yellow-400 hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 disabled:opacity-50"
-            type="submit"
-            disabled={loading}
-          >
-            {loading ? (
-              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-            ) : null}
-            {loading ? 'Saving...' : 'Save Profile'}
-          </button>
-        </div>
-      </form>
-      {message && (
-        <p
-          className={`mt-4 text-sm text-center ${
-            message.type === 'error' ? 'text-red-400' : 'text-green-400'
-          }`}
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-16">
+      <div className="max-w-4xl mx-auto px-6">
+        {/* Header */}
+        <motion.div 
+          className="text-center mb-12"
+          initial={{ opacity: 0, y: -30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
         >
-          {message.content}
-        </p>
-      )}
+          <h1 className="text-5xl font-light text-white mb-4 tracking-tight">
+            Perfect Your <span className="font-medium bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">Profile</span>
+          </h1>
+          <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+            Personalize your IELTS learning experience with premium AI coaching
+          </p>
+        </motion.div>
+
+        {/* Progress Steps */}
+        <motion.div 
+          className="mb-12"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+        >
+          <div className="flex justify-center items-center space-x-8">
+            {steps.map((step, index) => (
+              <div key={index} className="flex items-center">
+                <div className={`relative flex items-center justify-center w-16 h-16 rounded-2xl transition-all duration-500 ${
+                  index <= currentStep 
+                    ? 'bg-gradient-to-r from-amber-500 to-orange-500 shadow-lg shadow-amber-500/25' 
+                    : 'bg-gray-800 border border-gray-700'
+                }`}>
+                  <span className="text-2xl">{step.icon}</span>
+                  {index <= currentStep && (
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-r from-amber-400 to-orange-500 rounded-2xl"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ duration: 0.3 }}
+                      style={{ zIndex: -1 }}
+                    />
+                  )}
+                </div>
+                {index < steps.length - 1 && (
+                  <div className={`w-16 h-1 mx-4 rounded-full transition-all duration-500 ${
+                    index < currentStep ? 'bg-gradient-to-r from-amber-500 to-orange-500' : 'bg-gray-700'
+                  }`} />
+                )}
+              </div>
+            ))}
+          </div>
+          <div className="text-center mt-6">
+            <h3 className="text-2xl font-light text-white mb-2">{steps[currentStep].title}</h3>
+            <p className="text-gray-400">{steps[currentStep].description}</p>
+          </div>
+        </motion.div>
+
+        {/* Form */}
+        <motion.div
+          className="bg-white/5 backdrop-blur-xl rounded-3xl border border-white/10 p-8 shadow-2xl"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <form onSubmit={handleSubmit} className="space-y-8">
+            {/* Step 1: Personal Information */}
+            {currentStep === 0 && (
+              <motion.div
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5 }}
+                className="space-y-6"
+              >
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-300">First Name</label>
+                    <input
+                      type="text"
+                      value={formData.firstName}
+                      onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300"
+                      placeholder="Enter your first name"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-300">Last Name</label>
+                    <input
+                      type="text"
+                      value={formData.lastName}
+                      onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300"
+                      placeholder="Enter your last name"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-300">Phone Number</label>
+                  <input
+                    type="tel"
+                    value={formData.phoneNumber}
+                    onChange={(e) => setFormData({...formData, phoneNumber: e.target.value})}
+                    className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300"
+                    placeholder="Enter your phone number"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-300">Country</label>
+                  <select
+                    value={formData.country}
+                    onChange={(e) => setFormData({...formData, country: e.target.value})}
+                    className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300"
+                  >
+                    {countries.map((country) => (
+                      <option key={country.code} value={country.code} className="bg-gray-800">
+                        {country.flag} {country.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-300">Native Language</label>
+                  <input
+                    type="text"
+                    value={formData.nativeLanguage}
+                    onChange={(e) => setFormData({...formData, nativeLanguage: e.target.value})}
+                    className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300"
+                    placeholder="Enter your native language"
+                    required
+                  />
+                </div>
+              </motion.div>
+            )}
+
+            {/* Step 2: IELTS Background */}
+            {currentStep === 1 && (
+              <motion.div
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5 }}
+                className="space-y-6"
+              >
+                <div className="flex items-center p-6 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl border border-blue-500/20">
+                  <input
+                    type="checkbox"
+                    id="previouslyAttempted"
+                    checked={formData.previouslyAttempted}
+                    onChange={(e) => setFormData({...formData, previouslyAttempted: e.target.checked, previousBandScore: e.target.checked ? formData.previousBandScore : null})}
+                    className="w-5 h-5 text-amber-600 bg-gray-800 border-gray-600 rounded focus:ring-amber-500 focus:ring-2"
+                  />
+                  <label htmlFor="previouslyAttempted" className="ml-4 block text-lg text-white">
+                    I have previously attempted the IELTS exam
+                  </label>
+                </div>
+
+                {formData.previouslyAttempted && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    transition={{ duration: 0.3 }}
+                    className="space-y-2"
+                  >
+                    <label className="block text-sm font-medium text-gray-300">Previous Band Score</label>
+                    <select
+                      value={formData.previousBandScore || ''}
+                      onChange={(e) => setFormData({...formData, previousBandScore: parseFloat(e.target.value)})}
+                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300"
+                      required={formData.previouslyAttempted}
+                    >
+                      <option value="">Select your previous score</option>
+                      {previousScores.map((score) => (
+                        <option key={score} value={score} className="bg-gray-800">
+                          {score}
+                        </option>
+                      ))}
+                    </select>
+                  </motion.div>
+                )}
+              </motion.div>
+            )}
+
+            {/* Step 3: Goals & Timeline */}
+            {currentStep === 2 && (
+              <motion.div
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5 }}
+                className="space-y-6"
+              >
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-300">Target Band Score</label>
+                  <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
+                    {targetScores.map((score) => (
+                      <button
+                        key={score}
+                        type="button"
+                        onClick={() => setFormData({...formData, targetBandScore: score})}
+                        className={`py-3 px-4 rounded-xl border transition-all duration-300 ${
+                          formData.targetBandScore === score
+                            ? 'bg-gradient-to-r from-amber-500 to-orange-500 border-amber-400 text-white shadow-lg'
+                            : 'bg-gray-800/50 border-gray-600 text-gray-300 hover:border-amber-500/50'
+                        }`}
+                      >
+                        {score}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-300">Exam Date (Optional)</label>
+                  <input
+                    type="date"
+                    value={formData.examDate}
+                    onChange={(e) => setFormData({...formData, examDate: e.target.value})}
+                    className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300"
+                  />
+                </div>
+              </motion.div>
+            )}
+
+            {/* Navigation Buttons */}
+            <div className="flex justify-between pt-8">
+              <button
+                type="button"
+                onClick={prevStep}
+                disabled={currentStep === 0}
+                className={`px-8 py-3 rounded-xl font-medium transition-all duration-300 ${
+                  currentStep === 0 
+                    ? 'opacity-50 cursor-not-allowed' 
+                    : 'bg-gray-700 hover:bg-gray-600 text-white'
+                }`}
+              >
+                Previous
+              </button>
+
+              {currentStep < steps.length - 1 ? (
+                <button
+                  type="button"
+                  onClick={nextStep}
+                  disabled={!isStepValid(currentStep)}
+                  className={`px-8 py-3 rounded-xl font-medium transition-all duration-300 ${
+                    isStepValid(currentStep)
+                      ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white shadow-lg'
+                      : 'opacity-50 cursor-not-allowed bg-gray-700'
+                  }`}
+                >
+                  Next Step
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={isLoading || !isStepValid(currentStep)}
+                  className={`px-8 py-3 rounded-xl font-medium transition-all duration-300 flex items-center space-x-2 ${
+                    !isLoading && isStepValid(currentStep)
+                      ? 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-white shadow-lg'
+                      : 'opacity-50 cursor-not-allowed bg-gray-700'
+                  }`}
+                >
+                  {isLoading && (
+                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  )}
+                  <span>{isLoading ? 'Saving...' : 'Complete Profile'}</span>
+                </button>
+              )}
+            </div>
+          </form>
+        </motion.div>
+      </div>
     </div>
   )
 }
