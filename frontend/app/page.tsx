@@ -5,12 +5,19 @@ import { redirect } from 'next/navigation'
 export default async function Page() {
   const supabase = createClient()
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
     return redirect('/login')
+  }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('onboarding_completed')
+    .single()
+
+  if (profile && !profile.onboarding_completed) {
+    return redirect('/onboarding')
   }
 
   return (

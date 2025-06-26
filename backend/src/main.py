@@ -160,9 +160,9 @@ async def entrypoint(ctx: agents.JobContext):
     print(f"[LOG] Creating session")
     session = AgentSession(
         llm=google.beta.realtime.RealtimeModel(
-            model="gemini-2.0-flash-exp", 
+            model="gemini-live-2.5-flash-preview", 
             modalities=[Modality.AUDIO], 
-            voice="Puck",
+            voice="Leda",
             vertexai=False),
     )
 
