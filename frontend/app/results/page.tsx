@@ -4,10 +4,10 @@ import PremiumStatsCards from '@/components/PremiumStatsCards'
 import LuxuryPerformanceChart from '@/components/LuxuryPerformanceChart'
 import AdvancedSessionFeedback from '@/components/AdvancedSessionFeedback'
 import ScoreInsights from '@/components/ScoreInsights'
+import Link from 'next/link'
 
 export default async function ResultsPage() {
   const supabase = createClient()
-
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -93,7 +93,10 @@ export default async function ResultsPage() {
 
       {/* Floating Action Button */}
       <div className="fixed bottom-8 right-8 z-40">
-        <a href="/" className="group bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white px-8 py-4 rounded-2xl shadow-2xl hover:shadow-amber-500/25 transition-all duration-300 transform hover:scale-105 inline-flex">
+        <Link 
+          href="/" 
+          className="group bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white px-8 py-4 rounded-2xl shadow-2xl hover:shadow-amber-500/25 transition-all duration-300 transform hover:scale-105 inline-flex"
+        >
           <span className="flex items-center space-x-3">
             <span className="text-lg">🎯</span>
             <span className="font-medium">Start Practice</span>
@@ -101,7 +104,7 @@ export default async function ResultsPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
             </svg>
           </span>
-        </a>
+        </Link>
       </div>
     </div>
   )
