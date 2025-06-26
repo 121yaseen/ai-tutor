@@ -39,7 +39,13 @@ async def get_user_data_for_instructions(email: str) -> str:
     # Get user from database first
     student = db.get_student(email)
     user_profile = profile_db.get_profile_for_instruction(email)
-    history = student.get('history', [])
+    
+    # Handle new users who don't have a student record yet
+    if student is None:
+        history = []
+        print(f"[LOG] New user detected: {email}. No history available yet.")
+    else:
+        history = student.get('history', [])
     
     user_data = {
         "user_profile": user_profile,
@@ -74,6 +80,17 @@ async def get_user_data_for_instructions(email: str) -> str:
     instruction_text = f"""
 === USER DATA ===
 {user_data}
+"""
+    
+    # Add specific note for new users
+    if not history:
+        instruction_text += """
+*** NEW USER DETECTED ***
+This is the user's first IELTS practice session. No previous test history available.
+- Start with standard IELTS difficulty level
+- Be extra encouraging and supportive
+- Explain the test structure clearly
+- Focus on comprehensive assessment to establish baseline
 """
     
     if performance_summary:
