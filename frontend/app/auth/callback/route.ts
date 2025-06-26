@@ -20,8 +20,19 @@ export async function GET(request: NextRequest) {
         .eq('id', data.user.id)
         .single()
       
-      // If no profile exists, redirect to onboarding
+      // If no profile exists, create one and redirect to onboarding
       if (!profile) {
+        // Create basic profile for SSO user
+        await supabase.from('profiles').insert([
+          {
+            id: data.user.id,
+            full_name: data.user.user_metadata?.full_name || 
+                      data.user.user_metadata?.name || 
+                      data.user.email?.split('@')[0] || 
+                      'User',
+            updated_at: new Date().toISOString(),
+          }
+        ])
         return NextResponse.redirect(`${origin}/onboarding`)
       }
       

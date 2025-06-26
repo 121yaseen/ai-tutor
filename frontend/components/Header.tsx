@@ -14,6 +14,7 @@ const navigationItems = [
 
 export default function Header() {
   const [user, setUser] = useState<User | null>(null)
+  const [profile, setProfile] = useState<{first_name?: string, last_name?: string, full_name?: string} | null>(null)
   const [isScrolled, setIsScrolled] = useState(false)
   const [activeItem, setActiveItem] = useState('')
   const router = useRouter()
@@ -24,6 +25,16 @@ export default function Header() {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       setUser(user)
+      
+      if (user) {
+        // Get user profile for name display
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('first_name, last_name, full_name')
+          .eq('id', user.id)
+          .single()
+        setProfile(profileData)
+      }
     }
     getUser()
 
@@ -117,12 +128,19 @@ export default function Header() {
               transition={{ delay: 0.3 }}
             >
               <div className="text-right">
-                <p className="text-sm font-medium text-white">{user.email?.split('@')[0]}</p>
+                <p className="text-sm font-medium text-white">
+                  {profile?.first_name && profile?.last_name 
+                    ? `${profile.first_name} ${profile.last_name}`
+                    : profile?.full_name || user.email?.split('@')[0]
+                  }
+                </p>
                 <p className="text-xs text-gray-400">Premium Member</p>
               </div>
               <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg ring-2 ring-white/20">
                 <span className="text-white font-semibold text-sm">
-                  {user.email?.charAt(0).toUpperCase()}
+                  {profile?.first_name?.charAt(0).toUpperCase() || 
+                   profile?.full_name?.charAt(0).toUpperCase() || 
+                   user.email?.charAt(0).toUpperCase()}
                 </span>
               </div>
             </motion.div>
