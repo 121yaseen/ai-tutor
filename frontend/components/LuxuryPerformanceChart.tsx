@@ -109,8 +109,8 @@ export default function LuxuryPerformanceChart({
   }
 
   // Chart dimensions
-  const chartWidth = 800
-  const chartHeight = 400
+  const chartWidth = 1200
+  const chartHeight = 500
   const padding = 80
 
   // Data processing
@@ -146,23 +146,23 @@ export default function LuxuryPerformanceChart({
           <h3 className="text-3xl font-light text-white mb-2">Performance Analytics</h3>
           <p className="text-gray-400">Your journey toward excellence</p>
         </div>
-        <div className="flex items-center space-x-6 text-sm">
-          <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full"></div>
-            <span className="text-gray-300">Your Progress</span>
+                  <div className="flex items-center space-x-6 text-sm">
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full"></div>
+              <span className="text-gray-300">Your Progress</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-6 h-0.5 bg-amber-400 rounded-full" style={{backgroundImage: 'repeating-linear-gradient(to right, #F59E0B 0, #F59E0B 12px, transparent 12px, transparent 20px)'}}></div>
+              <span className="text-gray-300">Target: {targetScore}</span>
+            </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-amber-400 rounded-full"></div>
-            <span className="text-gray-300">Target: {targetScore}</span>
-          </div>
-        </div>
       </div>
 
       {/* Chart Container */}
       <div className="relative bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl p-6 backdrop-blur-sm border border-white/5">
         <svg
           viewBox={`0 0 ${chartWidth} ${chartHeight}`}
-          className="w-full h-80 overflow-visible"
+          className="w-full h-96 md:h-[500px] overflow-visible"
           preserveAspectRatio="xMidYMid meet"
         >
           {/* Grid */}
@@ -196,13 +196,26 @@ export default function LuxuryPerformanceChart({
             y1={targetY}
             x2={chartWidth - padding}
             y2={targetY}
-            stroke="url(#targetGradient)"
-            strokeWidth="2"
-            strokeDasharray="8,4"
+            stroke="#F59E0B"
+            strokeWidth="3"
+            strokeDasharray="12,8"
+            strokeOpacity="0.8"
             initial={{ pathLength: 0 }}
             animate={{ pathLength: 1 }}
             transition={{ duration: 1.5, delay: 0.5 }}
           />
+          
+          {/* Target Line Label */}
+          <text
+            x={chartWidth - padding + 10}
+            y={targetY + 4}
+            fill="#F59E0B"
+            fontSize="12"
+            fontWeight="600"
+            className="font-medium"
+          >
+            Target: {targetScore}
+          </text>
 
           {/* Area Fill */}
           <defs>
@@ -216,7 +229,7 @@ export default function LuxuryPerformanceChart({
             </linearGradient>
             <linearGradient id="targetGradient" x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stopColor="#F59E0B" />
-              <stop offset="100%" stopColor="#EF4444" />
+              <stop offset="100%" stopColor="#F97316" />
             </linearGradient>
           </defs>
 
