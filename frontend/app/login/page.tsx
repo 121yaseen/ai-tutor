@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { motion } from 'framer-motion'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 
-export default function LoginPage() {
+function LoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -14,6 +14,15 @@ export default function LoginPage() {
   
   const supabase = createClient()
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // Handle URL error parameters
+  useEffect(() => {
+    const urlError = searchParams.get('error')
+    if (urlError === 'auth_failed') {
+      setError('Authentication failed. Please try again.')
+    }
+  }, [searchParams])
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -296,4 +305,16 @@ export default function LoginPage() {
       </div>
     </div>
   )
-} 
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
+  )
+}
