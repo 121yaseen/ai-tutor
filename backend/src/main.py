@@ -17,10 +17,11 @@ from livekit.plugins import (
     noise_cancellation,
 )
 
-from .database.student_db import StudentDB
-from .agents.ielts_examiner_agent import IELTSExaminerAgent
-from .tools.agent_tools import set_current_user_email, set_database
-from .database.user_db import UserDB
+from src.database.student_db import StudentDB
+from src.agents.ielts_examiner_agent import IELTSExaminerAgent
+from src.tools.agent_tools import set_current_user_email, set_database
+from src.database.user_db import UserDB
+from src.database.profile_db import ProfileDB
 load_dotenv()
 
 # Initialize database
@@ -28,6 +29,7 @@ db = StudentDB()
 set_database(db)
 
 user_db = UserDB()
+profile_db = ProfileDB()
 
 async def get_user_data_for_instructions(email: str) -> str:
     """Fetch all user data upfront and format it for agent instructions"""
@@ -36,46 +38,15 @@ async def get_user_data_for_instructions(email: str) -> str:
     
     # Get user from database first
     student = db.get_student(email)
-    user_name = user_db.get_user_name(email)
-    print(f"[LOG] User name: {user_name}")
-    # If student doesn't exist, create a basic structure for first-time user
-    if not student:
-        # Create a basic record in DB for first-time user
-        db.create_student_if_not_exists(email, user_name)
-        user_data = {
-            "email": email,
-            "name": user_name,
-            "is_first_time_user": True,
-            "total_tests_taken": 0,
-            "test_history": [],
-            "performance_summary": None,
-            "latest_feedback": None
-        }
-        
-        return f"""
-=== USER DATA (FIRST-TIME USER) ===
-Email: {email}
-Name: {user_name}
-Status: First-time user - no previous test history
-Tests Taken: 0
-Previous Performance: None
-Recommendation: Conduct standard beginner-level IELTS test
-================================
-"""
-    
-    # Process existing user data
-    history = getattr(student, 'history', [])
-    name = getattr(student, 'name', 'User')
+    user_profile = profile_db.get_profile_for_instruction(email)
+    history = student.get('history', [])
     
     user_data = {
-        "email": email,
-        "name": user_name,
-        "is_first_time_user": False,
-        "total_tests_taken": len(history),
-        "test_history": history
+        "user_profile": user_profile,
+        "history": history
     }
     
-    # Analyze performance if history exists
+    # Initialize variables
     performance_summary = None
     latest_feedback = None
     
@@ -102,10 +73,7 @@ Recommendation: Conduct standard beginner-level IELTS test
     # Format data for instructions
     instruction_text = f"""
 === USER DATA ===
-Email: {email}
-Name: {user_name}
-Status: Returning user
-Tests Taken: {len(history)}
+{user_data}
 """
     
     if performance_summary:
@@ -216,7 +184,7 @@ async def entrypoint(ctx: agents.JobContext):
     
     # Create comprehensive instructions with user data
     full_instructions = f"""
-You are an IELTS Speaking Examiner Agent. The user data has been pre-loaded for you below.
+You are an IELTS Speaking Examiner Agent and your name is Pistah. The user data has been pre-loaded for you below.
 
 {user_data_instructions}
 
@@ -301,3 +269,4 @@ Start the session now by greeting the user and beginning the IELTS test!
 
 if __name__ == "__main__":
     agents.cli.run_app(agents.WorkerOptions(entrypoint_fnc=entrypoint))
+    

@@ -14,7 +14,7 @@ class StudentDB:
     def _get_connection(self):
         return psycopg2.connect(self.connection_string, connect_timeout=10)
 
-    def get_student(self, email: str) -> Optional[StudentPerformance]:
+    def get_student(self, email: str) -> Optional[str]:
         try:
             with self._get_connection() as conn:
                 with conn.cursor(cursor_factory=RealDictCursor) as cursor:
@@ -27,11 +27,9 @@ class StudentDB:
                             history_data = [] # Default to empty list if not a list
                         
                         student_data = {
-                            "email": result['email'],
-                            "name": result.get('name', 'User'),
                             "history": history_data
                         }
-                        return StudentPerformance(**student_data)
+                        return student_data
             return None
         except Exception as e:
             print(f"[ERROR] StudentDB get_student error: {e}")
