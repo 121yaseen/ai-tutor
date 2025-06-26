@@ -20,9 +20,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`h-full ${publicSans400.className}`}>
-      <body className="h-full flex flex-col">
+      <body className="h-full flex flex-col bg-gray-900 text-gray-100">
         <Header />
-        <main className="flex-1">{children}</main>
+        <main className="flex-1 bg-gray-900">{children}</main>
       </body>
     </html>
   );

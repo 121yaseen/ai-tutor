@@ -15,7 +15,7 @@ export default async function OnboardingPage() {
   }
 
   return (
-    <div className="container mx-auto p-4 sm:p-8">
+    <div className="container mx-auto p-4 sm:p-8 bg-gray-900 min-h-screen">
       <OnboardingForm user={user} />
     </div>
   )
