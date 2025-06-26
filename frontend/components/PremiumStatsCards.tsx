@@ -1,0 +1,234 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { motion } from 'framer-motion'
+
+interface TestResult {
+  band_score: number
+  test_date: string
+  detailed_scores?: {
+    fluency: number
+    vocabulary: number
+    grammar: number
+    pronunciation: number
+  }
+}
+
+interface StatsData {
+  latestScore: number
+  bestScore: number
+  averageScore: number
+  totalTests: number
+  improvement: number
+  weakestArea: string
+}
+
+export default function PremiumStatsCards({ 
+  userEmail, 
+  targetScore 
+}: { 
+  userEmail: string
+  targetScore: number 
+}) {
+  const [stats, setStats] = useState<StatsData>({
+    latestScore: 0,
+    bestScore: 0,
+    averageScore: 0,
+    totalTests: 0,
+    improvement: 0,
+    weakestArea: 'grammar'
+  })
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        const supabase = createClient()
+        const { data, error } = await supabase
+          .from('students')
+          .select('history')
+          .eq('email', userEmail)
+          .single()
+
+        if (error || !data?.history) {
+          setLoading(false)
+          return
+        }
+
+        const history: TestResult[] = data.history
+        
+        if (history.length === 0) {
+          setLoading(false)
+          return
+        }
+
+        const scores = history.map(test => test.band_score).filter(score => score > 0)
+        
+        const latestScore = scores[scores.length - 1] || 0
+        const bestScore = Math.max(...scores)
+        const averageScore = scores.reduce((sum, score) => sum + score, 0) / scores.length
+        const totalTests = history.length
+
+        // Calculate improvement
+        const improvement = scores.length > 1 
+          ? ((latestScore - scores[0]) / scores[0]) * 100 
+          : 0
+
+        // Find weakest area from latest test
+        const latestTest = history[history.length - 1]
+        let weakestArea = 'grammar'
+        if (latestTest.detailed_scores) {
+          const areas = latestTest.detailed_scores
+          const minScore = Math.min(areas.fluency, areas.vocabulary, areas.grammar, areas.pronunciation)
+          if (areas.fluency === minScore) weakestArea = 'fluency'
+          else if (areas.vocabulary === minScore) weakestArea = 'vocabulary'
+          else if (areas.pronunciation === minScore) weakestArea = 'pronunciation'
+        }
+
+        setStats({
+          latestScore,
+          bestScore,
+          averageScore: Math.round(averageScore * 10) / 10,
+          totalTests,
+          improvement: Math.round(improvement * 10) / 10,
+          weakestArea
+        })
+      } catch (error) {
+        console.error('Error fetching stats:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchStats()
+  }, [userEmail])
+
+  const statCards = [
+    {
+      title: 'Current Score',
+      value: stats.latestScore.toString(),
+      subtitle: `Target: ${targetScore}`,
+      icon: '🎯',
+      gradient: 'from-blue-500 to-purple-600',
+      bgGradient: 'from-blue-500/20 to-purple-600/20',
+      borderGradient: 'from-blue-400/50 to-purple-500/50',
+      progress: (stats.latestScore / targetScore) * 100,
+    },
+    {
+      title: 'Personal Best',
+      value: stats.bestScore.toString(),
+      subtitle: stats.improvement >= 0 ? `+${stats.improvement}% growth` : `${stats.improvement}% change`,
+      icon: '🏆',
+      gradient: 'from-amber-500 to-orange-500',
+      bgGradient: 'from-amber-500/20 to-orange-500/20',
+      borderGradient: 'from-amber-400/50 to-orange-400/50',
+      progress: (stats.bestScore / 9) * 100,
+    },
+    {
+      title: 'Average Score',
+      value: stats.averageScore.toString(),
+      subtitle: 'Consistency meter',
+      icon: '📊',
+      gradient: 'from-green-500 to-emerald-500',
+      bgGradient: 'from-green-500/20 to-emerald-500/20',
+      borderGradient: 'from-green-400/50 to-emerald-400/50',
+      progress: (stats.averageScore / 9) * 100,
+    },
+    {
+      title: 'Practice Sessions',
+      value: stats.totalTests.toString(),
+      subtitle: `Focus area: ${stats.weakestArea}`,
+      icon: '📚',
+      gradient: 'from-purple-500 to-pink-500',
+      bgGradient: 'from-purple-500/20 to-pink-500/20',
+      borderGradient: 'from-purple-400/50 to-pink-400/50',
+      progress: Math.min((stats.totalTests / 10) * 100, 100),
+    },
+  ]
+
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+        {[...Array(4)].map((_, index) => (
+          <motion.div 
+            key={index} 
+            className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10 animate-pulse"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.1 }}
+          >
+            <div className="h-6 bg-gray-600 rounded w-3/4 mb-4"></div>
+            <div className="h-10 bg-gray-600 rounded w-1/2 mb-2"></div>
+            <div className="h-4 bg-gray-600 rounded w-2/3"></div>
+          </motion.div>
+        ))}
+      </div>
+    )
+  }
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+      {statCards.map((card, index) => (
+        <motion.div
+          key={index}
+          className={`relative group bg-gradient-to-br ${card.bgGradient} backdrop-blur-xl rounded-2xl p-6 border border-gradient-to-r ${card.borderGradient} shadow-2xl hover:shadow-xl transition-all duration-500`}
+          initial={{ opacity: 0, y: 30, scale: 0.9 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ 
+            delay: index * 0.1, 
+            duration: 0.6,
+            ease: [0.215, 0.61, 0.355, 1]
+          }}
+          whileHover={{ 
+            scale: 1.05, 
+            rotateY: 5,
+            transition: { duration: 0.3 }
+          }}
+        >
+          {/* Glow Effect */}
+          <div className={`absolute inset-0 bg-gradient-to-r ${card.gradient} opacity-0 group-hover:opacity-20 rounded-2xl blur-xl transition-opacity duration-500`}></div>
+          
+          {/* Content */}
+          <div className="relative z-10">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-gray-300 text-sm font-medium uppercase tracking-wider">{card.title}</h3>
+                <p className="text-xs text-gray-500 mt-1">{card.subtitle}</p>
+              </div>
+              <div className={`w-12 h-12 bg-gradient-to-r ${card.gradient} rounded-2xl flex items-center justify-center shadow-lg`}>
+                <span className="text-2xl">{card.icon}</span>
+              </div>
+            </div>
+
+            {/* Main Value */}
+            <div className="mb-4">
+              <motion.div 
+                className="text-4xl font-bold text-white mb-2"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: (index * 0.1) + 0.3, duration: 0.5, type: "spring" }}
+              >
+                {card.value}
+              </motion.div>
+              
+              {/* Progress Bar */}
+              <div className="w-full bg-gray-700/50 rounded-full h-1.5 overflow-hidden">
+                <motion.div
+                  className={`h-full bg-gradient-to-r ${card.gradient} rounded-full`}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${Math.min(card.progress, 100)}%` }}
+                  transition={{ delay: (index * 0.1) + 0.5, duration: 0.8, ease: "easeOut" }}
+                />
+              </div>
+            </div>
+
+            {/* Micro-interaction indicator */}
+            <div className="absolute top-2 right-2 w-2 h-2 bg-gradient-to-r from-green-400 to-blue-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          </div>
+        </motion.div>
+      ))}
+    </div>
+  )
+} 

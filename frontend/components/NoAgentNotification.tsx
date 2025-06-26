@@ -1,5 +1,6 @@
-import type { AgentState } from "@livekit/components-react";
 import { useEffect, useRef, useState } from "react";
+
+type AgentState = "connecting" | "listening" | "thinking" | "speaking" | "disconnected" | "initializing";
 
 interface NoAgentNotificationProps extends React.PropsWithChildren<object> {
   state: AgentState;
