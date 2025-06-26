@@ -23,10 +23,8 @@ from .tools.agent_tools import set_current_user_email, set_database
 from .database.user_db import UserDB
 load_dotenv()
 
-DATA_PATH = Path("data/student.json")
-
 # Initialize database
-db = StudentDB(DATA_PATH)
+db = StudentDB()
 set_database(db)
 
 user_db = UserDB()
@@ -42,9 +40,11 @@ async def get_user_data_for_instructions(email: str) -> str:
     print(f"[LOG] User name: {user_name}")
     # If student doesn't exist, create a basic structure for first-time user
     if not student:
+        # Create a basic record in DB for first-time user
+        db.create_student_if_not_exists(email, user_name)
         user_data = {
             "email": email,
-            "name": user_name,  # Default name, should be updated with actual user name from profile
+            "name": user_name,
             "is_first_time_user": True,
             "total_tests_taken": 0,
             "test_history": [],

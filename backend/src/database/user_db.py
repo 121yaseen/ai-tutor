@@ -33,9 +33,10 @@ class UserDB:
                 with conn.cursor() as cursor:
                     # Execute the exact query provided by user
                     query = """
-                    SELECT full_name 
-                    FROM auth.users U 
-                    INNER JOIN profiles P ON U.id = P.id 
+                    SELECT
+                        COALESCE(P.first_name, '') || ' ' || COALESCE(P.last_name, '') AS full_name
+                    FROM auth.users AS U
+                    JOIN profiles AS P ON P.id = U.id
                     WHERE U.email = %s
                     """
                     cursor.execute(query, (email,))

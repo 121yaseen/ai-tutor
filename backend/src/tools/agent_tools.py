@@ -45,7 +45,7 @@ async def save_test_result_to_json(email: str, test_result: Dict) -> str:
     band_score = test_result.get('band_score', 'Unknown')
     test_number = test_result.get('test_number', len(student.history))
     
-    return f"SUCCESS: Test result saved to student.json for {student.name}. Test #{test_number} completed with band score: {band_score}. Total tests taken: {len(student.history)}"
+    return f"SUCCESS: Test result saved to Supabase for {student.name}. Test #{test_number} completed with band score: {band_score}. Total tests taken: {len(student.history)}"
 
 @function_tool
 async def create_new_student_record(email: str, name: str) -> str:
