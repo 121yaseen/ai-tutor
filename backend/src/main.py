@@ -285,5 +285,8 @@ Start the session now by greeting the user and beginning the IELTS test!
         print(f"[FALLBACK] LLM failed: {e}. Proceeding with default flow.")
 
 if __name__ == "__main__":
+    from dotenv import load_dotenv
+    load_dotenv()
+
     agents.cli.run_app(agents.WorkerOptions(entrypoint_fnc=entrypoint))
     
