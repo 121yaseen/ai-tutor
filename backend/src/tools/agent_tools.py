@@ -18,13 +18,16 @@ async def save_test_result_to_json(email: str, test_result: Dict) -> str:
     if not test_result:
         return "ERROR: Test result data is required."
     
-    student = db.get_student(email)
-    if not student:
+    student_data = db.get_student(email)
+    if not student_data:
         # If student doesn't exist, create a basic record first
         # This shouldn't happen if flow is followed correctly, but handle gracefully
         student = StudentPerformance(email=email, name="User")
         db.upsert_student(student)
-        student = db.get_student(email)
+        student_data = db.get_student(email)
+    
+    # Convert dict to StudentPerformance object
+    student = StudentPerformance(email=email, name="User", history=student_data.get('history', []))
     
     # Ensure test result has required fields
     required_fields = ['band_score', 'answers', 'feedback']
