@@ -73,6 +73,23 @@ export default function ProfileForm({ user }: { user: User }) {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    
+    // Prevent submission if not on the last step
+    if (currentStep !== steps.length - 1) {
+      console.warn('Form submission attempted on non-final step')
+      return
+    }
+    
+    // Ensure final step is valid before submitting
+    if (!isStepValid(currentStep)) {
+      console.warn('Form submission attempted with invalid data')
+      return
+    }
+    
+    await submitProfile()
+  }
+
+  const submitProfile = async () => {
     setIsLoading(true)
 
     try {
@@ -102,6 +119,22 @@ export default function ProfileForm({ user }: { user: User }) {
     }
   }
 
+  const handleCompleteProfile = async () => {
+    // Prevent submission if not on the last step
+    if (currentStep !== steps.length - 1) {
+      console.warn('Profile completion attempted on non-final step')
+      return
+    }
+    
+    // Ensure final step is valid before submitting
+    if (!isStepValid(currentStep)) {
+      console.warn('Profile completion attempted with invalid data')
+      return
+    }
+    
+    await submitProfile()
+  }
+
   const steps = [
     {
       title: 'Personal Information',
@@ -128,7 +161,16 @@ export default function ProfileForm({ user }: { user: User }) {
     return step.fields.every(field => {
       if (field === 'previousBandScore' && !formData.previouslyAttempted) return true
       if (field === 'examDate') return true // Optional
-      return formData[field as keyof typeof formData] !== '' && formData[field as keyof typeof formData] !== null
+      
+      const value = formData[field as keyof typeof formData]
+      
+      // Special handling for targetBandScore (number field)
+      if (field === 'targetBandScore') {
+        return value !== null && value !== undefined && value !== ''
+      }
+      
+      // Regular validation for string fields
+      return value !== '' && value !== null && value !== undefined
     })
   }
 
@@ -401,7 +443,8 @@ export default function ProfileForm({ user }: { user: User }) {
                 </button>
               ) : (
                 <button
-                  type="submit"
+                  type="button"
+                  onClick={handleCompleteProfile}
                   disabled={isLoading || !isStepValid(currentStep)}
                   className={`px-8 py-3 rounded-xl font-medium transition-all duration-300 flex items-center space-x-2 ${
                     !isLoading && isStepValid(currentStep)

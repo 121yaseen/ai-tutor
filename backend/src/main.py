@@ -257,6 +257,70 @@ After completing the test, you MUST call the save_test_result_to_json function w
   * "strengths": list of what they did well
   * "improvements": list of specific areas to work on
 
+### EXAMPLE TEST RESULT STRUCTURE:
+Here's a complete example of the expected test result format:
+```json
+[{{
+  "answers": {{
+    "Part 1": {{
+      "questions": [
+        "Can you tell me a little bit about your hometown?",
+        "Do you work or are you a student?",
+        "As a software developer, what do you find most interesting about your job?",
+        "What are your main responsibilities in your current role as a software developer?"
+      ],
+      "responses": [
+        "I'm from from Alo. Um",
+        "I'm working as software develop.",
+        "The thing I find most interesting about my job is the fact that I can create anything from very basic from scratch.",
+        "My main responsibility include creating new features on new addition for my module and back which says."
+      ]
+    }},
+    "Part 2": {{
+      "topic": "Describe a skill that you learned that helped you in your studies.",
+      "response": "One of the tricks I actually learned during my study time is the technique which helped me is Pomodoro Technique. It helped me focus more and then do my time management effectively help me get things done..."
+    }},
+    "Part 3": {{
+      "questions": [
+        "What are some new skills that people are learning these days?",
+        "Why do you think learning how to use AI is so important now?"
+      ],
+      "responses": [
+        "I think working with AI is a skill that people are learning these days, like how to make use of the AI advancements that are happening.",
+        "Because AI has a lot of capabilities ranging from like reading, writing to like doing important task or like complex task independently..."
+      ]
+    }}
+  }},
+  "feedback": {{
+    "fluency": "You maintained a good flow throughout the test, and your ideas were generally well-organized. There were still a few moments of hesitation...",
+    "grammar": "You used a mix of simple and complex sentence structures. There were instances where you successfully formed complex sentences...",
+    "vocabulary": "Your vocabulary is strong and varied. You used a good range of words and phrases...",
+    "pronunciation": "Your pronunciation was clear and easy to understand. Word and sentence stress were generally accurate..."
+  }},
+  "strengths": [
+    "Strong vocabulary and ability to discuss various topics.",
+    "Good overall fluency with a natural pace.",
+    "Clear and understandable pronunciation.",
+    "Good recovery from hesitation."
+  ],
+  "test_date": "2025-06-26T16:27:47.357145",
+  "band_score": 6.5,
+  "test_number": 4,
+  "improvements": [
+    "Grammatical Range and Accuracy: Focus on consistently using a wider range of complex grammatical structures more accurately...",
+    "Fluency and Coherence: While improved, continue working on reducing hesitation..."
+  ],
+  "detailed_scores": {{
+    "fluency": 6.5,
+    "grammar": 6,
+    "vocabulary": 7,
+    "pronunciation": 7
+  }}
+}}]
+```
+
+Follow this exact structure when saving test results. Make sure to include all required fields and provide detailed, constructive feedback in each section.
+
 Then provide clear feedback to the user:
 - Their band score and what it means
 - Strengths they demonstrated  
