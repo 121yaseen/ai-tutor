@@ -1,58 +1,65 @@
-{
-  "answers": {
-    "Part 1": {
-      "questions": [
-        "Can you tell me about your hometown?",
-        "Do you work or are you a student?",
-        "What do you enjoy most about your work/studies?",
-        "How do you usually spend your free time?"
-      ],
-      "responses": [
-        "I'm from [hometown], which is a [description] city/town in [region/country].",
-        "I work as a [profession] / I'm a student studying [subject] at [institution].",
-        "What I enjoy most is [specific aspect] because [reason].",
-        "In my free time, I like to [activities] which helps me [benefit/reason]."
-      ]
+[
+  {
+    "answers": {
+      "Part 1": {
+        "questions": [
+          "Can you tell me a little bit about your hometown?",
+          "Do you work or are you a student?",
+          "As a software developer, what do you find most interesting about your job?",
+          "What are your main responsibilities in your current role as a software developer?"
+        ],
+        "responses": [
+          "I'm from from Alo. Um",
+          "I'm working as software develop.",
+          "The thing I find most interesting about my job is the fact that I can create anything from very basic from scratch.",
+          "My main responsibility include creating new features on new addition for my module and back which says."
+        ]
+      },
+      "Part 2": {
+        "topic": "Describe a skill that you learned that helped you in your studies.",
+        "response": "One of the tricks I actually learned during my study time is the technique which helped me is Pomodoro Technique. It helped me focus more and then do my time management effectively help me get things done. I learned it from an online blog written by a student. Earlier I used to struggle a lot because like when I think of studies, I think it is a single chunk and then it freaks out me earlier. So, when I actually structured it in 25 minutes chunks and then I thought of like executing just 25 minutes one at a time, it has really helped me. Because like in long run, if I didn't had this skill, I would have like not done an electricity."
+      },
+      "Part 3": {
+        "questions": [
+          "What are some new skills that people are learning these days?",
+          "Why do you think learning how to use AI is so important now?",
+          "Do you think it's important for everyone to learn about AI, or just people in certain professions?",
+          "Do you think people learn more effectively in a classroom setting or through self-study?",
+          "Would you say that classroom learning still has any advantages over self-study?"
+        ],
+        "responses": [
+          "I think working with AI is a skill that people are learning these days, like how to make use of the AI advancements that are happening.",
+          "Because AI has a lot of capabilities ranging from like reading, writing to like doing important task or like complex task independently. So, and it's better than most human beings as well currently so it's like very good skill to have at this.",
+          "I think everyone should learn about AI because like AI covers not only professionals but like people from everyday life. For example, if I want to cook anything, then I can just ask the AI to give me the instructions or like it can customize menu based on my health or it can customize based on whatever things I have. It's a simple example which helped me like eat better at a single time. From that to like doing complete advanced application creation, so something like that can also be done by AI. So, people from all professions or all levels in life should learn about working with AI.",
+          "I think the time of classroom study has like gone. Like earlier, there were no further additional ways to learn other than from a teacher. Currently that's not the scenario. They are personalized learning. There are like a lot of resources to learn online or something like that. So, I think self-study is a very viable option, contrary to classroom study.",
+          "Yeah, peer learning is a very good advantage of from study like because like you can have access to people who are like who have the same goal as of you and then so that like learning will be much easier and people who can relate to the things that you currently going through. Very much important. Also like socialization perspective as well like people classroom selected in that aspect."
+        ]
+      }
     },
-    "Part 2": {
-      "topic": "Describe [topic prompt - e.g., 'a memorable experience', 'a person you admire', 'a place you'd like to visit']",
-      "response": "[Extended response of 1-2 minutes covering the topic with personal examples, details, and explanations. Should demonstrate vocabulary range, grammatical structures, and fluency.]"
+    "feedback": {
+      "fluency": "You maintained a good flow throughout the test, and your ideas were generally well-organized. There were still a few moments of hesitation, particularly at the beginning of your answers in Part 1 and Part 3. However, you quickly recovered and continued speaking. This is an improvement from your last test, but still an area to focus on for a higher score.",
+      "grammar": "You used a mix of simple and complex sentence structures. There were instances where you successfully formed complex sentences, but also some minor grammatical inaccuracies or incomplete sentence structures, especially when elaborating on your points. For example, some sentences could have been more fully developed to show a greater range of complex grammatical structures. This is an area where you can definitely improve to elevate your score.",
+      "vocabulary": "Your vocabulary is strong and varied. You used a good range of words and phrases, such as \"effectively,\" \"abundance,\" and \"personalized learning,\" which were appropriate for the topics. You demonstrated a clear ability to discuss abstract ideas in Part 3.",
+      "pronunciation": "Your pronunciation was clear and easy to understand. Word and sentence stress were generally accurate, which helped with the clarity of your message."
     },
-    "Part 3": {
-      "questions": [
-        "[Abstract question related to Part 2 topic]",
-        "[Comparative question about past vs present/future]",
-        "[Opinion question about societal trends]",
-        "[Hypothetical or complex analytical question]"
-      ],
-      "responses": [
-        "[Analytical response with reasoning and examples]",
-        "[Comparative response discussing changes over time]",
-        "[Opinion with supporting arguments and evidence]",
-        "[Complex response demonstrating advanced thinking]"
-      ]
+    "strengths": [
+      "Strong vocabulary and ability to discuss various topics.",
+      "Good overall fluency with a natural pace.",
+      "Clear and understandable pronunciation.",
+      "Good recovery from hesitation."
+    ],
+    "test_date": "2025-06-26T16:27:47.357145",
+    "band_score": 6.5,
+    "test_number": 4,
+    "improvements": [
+      "Grammatical Range and Accuracy: Focus on consistently using a wider range of complex grammatical structures more accurately. Practice subordinating and coordinating conjunctions to form longer, more intricate sentences. For example, instead of two short sentences, try to combine them using appropriate conjunctions or relative clauses.",
+      "Fluency and Coherence: While improved, continue working on reducing hesitation. Practice speaking at length on various topics to build confidence and maintain a smoother flow. Try to extend your answers naturally, without overthinking each word."
+    ],
+    "detailed_scores": {
+      "fluency": 6.5,
+      "grammar": 6,
+      "vocabulary": 7,
+      "pronunciation": 7
     }
-  },
-  "feedback": {
-    "fluency": "[Assessment of speech flow, pace, hesitation, and natural delivery]",
-    "grammar": "[Evaluation of grammatical accuracy, sentence structures, and complexity]",
-    "vocabulary": "[Assessment of word choice, range, precision, and appropriateness]",
-    "pronunciation": "[Evaluation of clarity, intonation, stress, and intelligibility]"
-  },
-  "strengths": [
-    "[Specific positive aspect - e.g., 'Clear pronunciation']",
-    "[Another strength - e.g., 'Good vocabulary range']",
-    "[Additional strength - e.g., 'Natural conversation flow']"
-  ],
-  "band_score": 6.5,
-  "improvements": [
-    "[Specific area for improvement with actionable advice]",
-    "[Another improvement area with concrete suggestions]"
-  ],
-  "detailed_scores": {
-    "fluency": 6,
-    "grammar": 6,
-    "vocabulary": 7,
-    "pronunciation": 7
   }
-} 
+]

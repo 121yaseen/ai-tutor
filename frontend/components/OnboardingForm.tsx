@@ -31,6 +31,7 @@ export default function OnboardingForm({ user }: { user: User }) {
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [phoneNumber, setPhoneNumber] = useState('')
+  const [phoneError, setPhoneError] = useState('')
   const [previouslyAttempted, setPreviouslyAttempted] = useState(false)
   const [previousBandScore, setPreviousBandScore] = useState<number | null>(null)
   const [examDate, setExamDate] = useState('')
@@ -39,8 +40,42 @@ export default function OnboardingForm({ user }: { user: User }) {
   const [nativeLanguage, setNativeLanguage] = useState('')
   const [isLoading, setIsLoading] = useState(false) // New loading state
 
+  const validatePhoneNumber = (phone: string) => {
+    const phoneRegex = /^\d{10}$/
+    if (!phone) {
+      setPhoneError('Phone number is required')
+      return false
+    }
+    if (!phoneRegex.test(phone)) {
+      setPhoneError('Phone number must be exactly 10 digits')
+      return false
+    }
+    setPhoneError('')
+    return true
+  }
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, '') // Remove non-digits
+    if (value.length <= 10) {
+      setPhoneNumber(value)
+      if (value.length === 10) {
+        validatePhoneNumber(value)
+      } else if (value.length > 0) {
+        setPhoneError('Phone number must be exactly 10 digits')
+      } else {
+        setPhoneError('')
+      }
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    
+    // Validate phone number before submission
+    if (!validatePhoneNumber(phoneNumber)) {
+      return
+    }
+    
     setIsLoading(true) // Set loading to true on submit
 
     const { error } = await supabase.from('profiles').update({
@@ -81,11 +116,54 @@ export default function OnboardingForm({ user }: { user: User }) {
         </div>
         <div>
           <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-300">Phone Number</label>
-          <input type="tel" id="phoneNumber" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} required className="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-white placeholder-gray-400 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 sm:text-sm" />
+          <div className="mt-1 flex rounded-md shadow-sm">
+            <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-600 bg-gray-600 text-gray-300 text-sm">
+              🇮🇳+91
+            </span>
+            <input 
+              type="tel" 
+              id="phoneNumber" 
+              value={phoneNumber} 
+              onChange={handlePhoneChange}
+              placeholder="1234567890"
+              maxLength={10}
+              required 
+              className={`flex-1 block w-full px-3 py-2 bg-gray-700 border rounded-none rounded-r-md shadow-sm text-white placeholder-gray-400 focus:outline-none focus:ring-yellow-500 sm:text-sm ${
+                phoneError ? 'border-red-500 focus:border-red-500' : 'border-gray-600 focus:border-yellow-500'
+              }`}
+            />
+          </div>
+          {phoneError && (
+            <p className="mt-1 text-sm text-red-400">{phoneError}</p>
+          )}
+          <p className="mt-1 text-xs text-gray-400">Enter your 10-digit mobile number</p>
         </div>
-        <div className="flex items-center">
-          <input type="checkbox" id="previouslyAttempted" checked={previouslyAttempted} onChange={(e) => setPreviouslyAttempted(e.target.checked)} className="h-4 w-4 text-yellow-600 focus:ring-yellow-500 border-gray-600 bg-gray-700 rounded" />
-          <label htmlFor="previouslyAttempted" className="ml-2 block text-sm text-gray-300">Have you previously attempted the IELTS exam?</label>
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-3">Have you previously attempted the IELTS exam?</label>
+          <div className="flex space-x-6">
+            <div className="flex items-center">
+              <input 
+                type="radio" 
+                id="previouslyAttempted-yes" 
+                name="previouslyAttempted"
+                checked={previouslyAttempted === true} 
+                onChange={() => setPreviouslyAttempted(true)} 
+                className="h-4 w-4 text-yellow-600 focus:ring-yellow-500 border-gray-600 bg-gray-700" 
+              />
+              <label htmlFor="previouslyAttempted-yes" className="ml-2 block text-sm text-gray-300 cursor-pointer">Yes</label>
+            </div>
+            <div className="flex items-center">
+              <input 
+                type="radio" 
+                id="previouslyAttempted-no" 
+                name="previouslyAttempted"
+                checked={previouslyAttempted === false} 
+                onChange={() => setPreviouslyAttempted(false)} 
+                className="h-4 w-4 text-yellow-600 focus:ring-yellow-500 border-gray-600 bg-gray-700" 
+              />
+              <label htmlFor="previouslyAttempted-no" className="ml-2 block text-sm text-gray-300 cursor-pointer">No</label>
+            </div>
+          </div>
         </div>
         {previouslyAttempted && (
           <div>
