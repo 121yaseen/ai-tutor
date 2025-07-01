@@ -1,0 +1,58 @@
+{
+  "answers": {
+    "Part 1": {
+      "questions": [
+        "Can you tell me about your hometown?",
+        "Do you work or are you a student?",
+        "What do you enjoy most about your work/studies?",
+        "How do you usually spend your free time?"
+      ],
+      "responses": [
+        "I'm from [hometown], which is a [description] city/town in [region/country].",
+        "I work as a [profession] / I'm a student studying [subject] at [institution].",
+        "What I enjoy most is [specific aspect] because [reason].",
+        "In my free time, I like to [activities] which helps me [benefit/reason]."
+      ]
+    },
+    "Part 2": {
+      "topic": "Describe [topic prompt - e.g., 'a memorable experience', 'a person you admire', 'a place you'd like to visit']",
+      "response": "[Extended response of 1-2 minutes covering the topic with personal examples, details, and explanations. Should demonstrate vocabulary range, grammatical structures, and fluency.]"
+    },
+    "Part 3": {
+      "questions": [
+        "[Abstract question related to Part 2 topic]",
+        "[Comparative question about past vs present/future]",
+        "[Opinion question about societal trends]",
+        "[Hypothetical or complex analytical question]"
+      ],
+      "responses": [
+        "[Analytical response with reasoning and examples]",
+        "[Comparative response discussing changes over time]",
+        "[Opinion with supporting arguments and evidence]",
+        "[Complex response demonstrating advanced thinking]"
+      ]
+    }
+  },
+  "feedback": {
+    "fluency": "[Assessment of speech flow, pace, hesitation, and natural delivery]",
+    "grammar": "[Evaluation of grammatical accuracy, sentence structures, and complexity]",
+    "vocabulary": "[Assessment of word choice, range, precision, and appropriateness]",
+    "pronunciation": "[Evaluation of clarity, intonation, stress, and intelligibility]"
+  },
+  "strengths": [
+    "[Specific positive aspect - e.g., 'Clear pronunciation']",
+    "[Another strength - e.g., 'Good vocabulary range']",
+    "[Additional strength - e.g., 'Natural conversation flow']"
+  ],
+  "band_score": 6.5,
+  "improvements": [
+    "[Specific area for improvement with actionable advice]",
+    "[Another improvement area with concrete suggestions]"
+  ],
+  "detailed_scores": {
+    "fluency": 6,
+    "grammar": 6,
+    "vocabulary": 7,
+    "pronunciation": 7
+  }
+} 
