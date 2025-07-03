@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -25,7 +25,7 @@ export default function Header() {
   const supabase = createClient()
 
   // Function to fetch user profile
-  const fetchUserProfile = async (userId: string) => {
+  const fetchUserProfile = useCallback(async (userId: string) => {
     try {
       const { data: profileData } = await supabase
         .from('profiles')
@@ -37,7 +37,7 @@ export default function Header() {
       console.error('Error fetching profile:', error)
       setProfile(null)
     }
-  }
+  }, [supabase])
 
   useEffect(() => {
     let isMounted = true
@@ -102,7 +102,7 @@ export default function Header() {
       subscription.unsubscribe()
       window.removeEventListener('scroll', handleScroll)
     }
-  }, [supabase.auth])
+  }, [supabase.auth, fetchUserProfile])
 
   useEffect(() => {
     const currentItem = navigationItems.find(item => item.href === pathname)

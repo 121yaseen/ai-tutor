@@ -119,7 +119,7 @@ export default function FeedbackModal({ isOpen, onClose, userEmail }: FeedbackMo
                     </p>
                     
                     <label htmlFor="feedback" className="block text-sm font-medium text-gray-300 mb-3">
-                      What's on your mind?
+                      What&apos;s on your mind?
                     </label>
                     <textarea
                       id="feedback"

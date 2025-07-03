@@ -69,7 +69,7 @@ export default function ProfileForm({ user }: { user: User }) {
       }
     }
     loadProfile()
-  }, [])
+  }, [supabase])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
