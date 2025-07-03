@@ -71,8 +71,6 @@ export default function Header() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!isMounted) return
-
-        console.log('Auth state changed:', event, session?.user?.email)
         
         if (event === 'SIGNED_IN' && session?.user) {
           setUser(session.user)
