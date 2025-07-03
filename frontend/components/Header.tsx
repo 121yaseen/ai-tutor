@@ -124,8 +124,35 @@ export default function Header() {
     }
   }
 
-  // Don't render header if still loading initial state or no user
-  if (isLoading || !user) return null
+  // Don't render header if no user (but allow rendering during loading)
+  if (!user && !isLoading) return null
+  
+  // Show loading skeleton if still loading initial state
+  if (isLoading) {
+    return (
+      <div className="fixed top-0 left-0 right-0 z-50 bg-gray-900/95 backdrop-blur-xl border-b border-gray-800/50">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="flex items-center justify-between h-20">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-amber-400 via-amber-500 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg">
+                <span className="text-gray-900 font-bold text-lg">AI</span>
+              </div>
+              <div className="hidden sm:block">
+                <h1 className="text-2xl font-light text-white tracking-tight">
+                  IELTS <span className="font-medium bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">Examiner</span>
+                </h1>
+                <p className="text-xs text-gray-400 font-light tracking-wider uppercase">Premium AI Learning</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="w-8 h-8 bg-gray-700/50 rounded-full animate-pulse"></div>
+              <div className="w-20 h-8 bg-gray-700/50 rounded-xl animate-pulse hidden sm:block"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <motion.header
@@ -214,7 +241,7 @@ export default function Header() {
                 <p className="text-sm font-medium text-white">
                   {profile?.first_name && profile?.last_name 
                     ? `${profile.first_name} ${profile.last_name}`
-                    : profile?.full_name || user.email?.split('@')[0]
+                    : profile?.full_name || user?.email?.split('@')[0]
                   }
                 </p>
                 <p className="text-xs text-gray-400">Premium Member</p>
@@ -223,7 +250,7 @@ export default function Header() {
                 <span className="text-white font-semibold text-sm">
                   {profile?.first_name?.charAt(0).toUpperCase() || 
                    profile?.full_name?.charAt(0).toUpperCase() || 
-                   user.email?.charAt(0).toUpperCase()}
+                   user?.email?.charAt(0).toUpperCase()}
                 </span>
               </div>
             </motion.div>
@@ -292,7 +319,7 @@ export default function Header() {
       <FeedbackModal
         isOpen={isFeedbackModalOpen}
         onClose={() => setIsFeedbackModalOpen(false)}
-        userEmail={user.email || ''}
+        userEmail={user?.email || ''}
       />
     </motion.header>
   )
