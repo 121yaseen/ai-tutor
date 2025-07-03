@@ -177,7 +177,7 @@ export default function OnboardingForm({ user }: { user: User }) {
         </div>
         <div>
           <label htmlFor="targetBandScore" className="block text-sm font-medium text-gray-300">Target Band Score</label>
-          <input type="number" id="targetBandScore" value={targetBandScore || ''} onChange={(e) => setTargetBandScore(parseFloat(e.target.value))} step="0.5" min="0" max="10" className="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-white placeholder-gray-400 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 sm:text-sm" />
+          <input type="number" id="targetBandScore" value={targetBandScore || ''} onChange={(e) => setTargetBandScore(parseFloat(e.target.value))} step="0.5" min="0" max="9" className="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-white placeholder-gray-400 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 sm:text-sm" />
         </div>
         <div>
           <label htmlFor="country" className="block text-sm font-medium text-gray-300">Country</label>

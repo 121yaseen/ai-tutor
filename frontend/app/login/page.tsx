@@ -47,7 +47,9 @@ function LoginForm() {
               updated_at: new Date().toISOString(),
             }
           ])
-          router.push('/onboarding')
+          setTimeout(() => {
+            router.push('/onboarding')
+          }, 100)
         }
       } else {
         const { error } = await supabase.auth.signInWithPassword({
@@ -58,8 +60,11 @@ function LoginForm() {
         if (error) {
           setError(error.message)
         } else {
-          router.push('/')
-          router.refresh()
+          // Small delay to ensure auth state is updated
+          setTimeout(() => {
+            router.push('/')
+            router.refresh()
+          }, 100)
         }
       }
     } catch (err) {

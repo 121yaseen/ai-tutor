@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { User } from '@supabase/supabase-js'
+import FeedbackModal from './FeedbackModal'
 
 const navigationItems = [
   { name: 'Practice', href: '/', icon: '🎯' },
@@ -17,33 +18,91 @@ export default function Header() {
   const [profile, setProfile] = useState<{first_name?: string, last_name?: string, full_name?: string} | null>(null)
   const [isScrolled, setIsScrolled] = useState(false)
   const [activeItem, setActiveItem] = useState('')
+  const [isLoading, setIsLoading] = useState(true)
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
   const supabase = createClient()
 
+  // Function to fetch user profile
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('first_name, last_name, full_name')
+        .eq('id', userId)
+        .single()
+      setProfile(profileData)
+    } catch (error) {
+      console.error('Error fetching profile:', error)
+      setProfile(null)
+    }
+  }
+
   useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      setUser(user)
-      
-      if (user) {
-        // Get user profile for name display
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('first_name, last_name, full_name')
-          .eq('id', user.id)
-          .single()
-        setProfile(profileData)
+    let isMounted = true
+
+    // Get initial user
+    const getInitialUser = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (isMounted) {
+          setUser(user)
+          if (user) {
+            await fetchUserProfile(user.id)
+          } else {
+            setProfile(null)
+          }
+          setIsLoading(false)
+        }
+      } catch (error) {
+        console.error('Error getting initial user:', error)
+        if (isMounted) {
+          setUser(null)
+          setProfile(null)
+          setIsLoading(false)
+        }
       }
     }
-    getUser()
 
+    getInitialUser()
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (!isMounted) return
+
+        console.log('Auth state changed:', event, session?.user?.email)
+        
+        if (event === 'SIGNED_IN' && session?.user) {
+          setUser(session.user)
+          await fetchUserProfile(session.user.id)
+          setIsLoading(false)
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null)
+          setProfile(null)
+          setIsLoading(false)
+        } else if (event === 'TOKEN_REFRESHED' && session?.user) {
+          setUser(session.user)
+          // Don't fetch profile again on token refresh to avoid unnecessary API calls
+          setIsLoading(false)
+        }
+      }
+    )
+
+    // Handle scroll events
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20)
     }
     window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+
+    // Cleanup function
+    return () => {
+      isMounted = false
+      subscription.unsubscribe()
+      window.removeEventListener('scroll', handleScroll)
+    }
+  }, [supabase.auth])
 
   useEffect(() => {
     const currentItem = navigationItems.find(item => item.href === pathname)
@@ -51,12 +110,24 @@ export default function Header() {
   }, [pathname])
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    router.push('/login')
-    router.refresh()
+    try {
+      // Clear state immediately for better UX
+      setUser(null)
+      setProfile(null)
+      
+      // Sign out from Supabase
+      await supabase.auth.signOut()
+      
+      // Navigate to login page
+      router.push('/login')
+      router.refresh()
+    } catch (error) {
+      console.error('Error signing out:', error)
+    }
   }
 
-  if (!user) return null
+  // Don't render header if still loading initial state or no user
+  if (isLoading || !user) return null
 
   return (
     <motion.header
@@ -120,6 +191,20 @@ export default function Header() {
 
           {/* User Profile & Actions */}
           <div className="flex items-center space-x-4">
+            {/* Feedback Button */}
+            <motion.button
+              onClick={() => setIsFeedbackModalOpen(true)}
+              className="group relative px-3 py-2 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 rounded-xl text-amber-400 hover:text-amber-300 transition-all duration-300 backdrop-blur-sm"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              title="Share your feedback"
+            >
+              <span className="flex items-center space-x-2">
+                <span className="text-lg group-hover:scale-110 transition-transform duration-300">💭</span>
+                <span className="hidden sm:inline text-sm font-medium">Feedback</span>
+              </span>
+            </motion.button>
+
             {/* User Avatar */}
             <motion.div 
               className="hidden sm:flex items-center space-x-3"
@@ -189,9 +274,28 @@ export default function Header() {
                 <span className="font-medium">{item.name}</span>
               </motion.button>
             ))}
+            
+            {/* Mobile Feedback Button */}
+            <motion.button
+              onClick={() => setIsFeedbackModalOpen(true)}
+              className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-left transition-all duration-300 text-amber-400 hover:bg-amber-500/10 hover:text-amber-300 border border-amber-500/30"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: navigationItems.length * 0.1 }}
+            >
+              <span>💭</span>
+              <span className="font-medium">Share Feedback</span>
+            </motion.button>
           </div>
         </motion.div>
       </AnimatePresence>
+
+      {/* Feedback Modal */}
+      <FeedbackModal
+        isOpen={isFeedbackModalOpen}
+        onClose={() => setIsFeedbackModalOpen(false)}
+        userEmail={user.email || ''}
+      />
     </motion.header>
   )
 } 
