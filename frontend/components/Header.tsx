@@ -87,11 +87,11 @@ export default function Header() {
             whileHover={{ scale: 1.02 }}
             transition={{ duration: 0.2 }}
           >
-            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-amber-400 via-amber-500 to-orange-500 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg">
-              <span className="text-gray-900 font-bold text-sm sm:text-lg">AI</span>
+            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-amber-400 via-amber-500 to-orange-500 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg">
+              <span className="text-gray-900 font-bold text-lg sm:text-xl">AI</span>
             </div>
-            <div className="hidden sm:block">
-              <h1 className="text-xl sm:text-2xl font-light text-white tracking-tight">
+            <div className="block">
+              <h1 className="text-lg sm:text-xl lg:text-2xl font-light text-white tracking-tight">
                 IELTS <span className="font-medium bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">Examiner</span>
               </h1>
               <p className="text-xs text-gray-400 font-light tracking-wider uppercase">Premium AI Learning</p>
@@ -129,25 +129,25 @@ export default function Header() {
           </nav>
 
           {/* User Profile & Actions */}
-          <div className="flex items-center space-x-2 sm:space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4 h-full">
             {/* User Avatar */}
             <motion.div 
-              className="hidden sm:flex items-center space-x-2 sm:space-x-3"
+              className="hidden sm:flex items-center space-x-2 sm:space-x-3 h-full"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 }}
             >
-              <div className="text-right">
-                <p className="text-sm font-medium text-white">
+              <div className="text-right flex flex-col justify-center">
+                <p className="text-sm font-medium text-white leading-tight">
                   {profile?.first_name && profile?.last_name 
                     ? `${profile.first_name} ${profile.last_name}`
                     : profile?.full_name || user.email?.split('@')[0]
                   }
                 </p>
-                <p className="text-xs text-gray-400">Premium Member</p>
+                <p className="text-xs text-gray-400 leading-tight">Premium Member</p>
               </div>
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg ring-2 ring-white/20">
-                <span className="text-white font-semibold text-xs sm:text-sm">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg ring-2 ring-white/20 flex-shrink-0">
+                <span className="text-white font-semibold text-sm sm:text-base">
                   {profile?.first_name?.charAt(0).toUpperCase() || 
                    profile?.full_name?.charAt(0).toUpperCase() || 
                    user.email?.charAt(0).toUpperCase()}
@@ -158,10 +158,10 @@ export default function Header() {
             {/* Mobile Menu Button */}
             <motion.button
               onClick={toggleMobileMenu}
-              className="md:hidden p-2 rounded-lg bg-gray-800/50 text-gray-300 hover:text-white hover:bg-gray-700/50 transition-colors duration-300 touch-manipulation"
+              className="md:hidden w-12 h-12 sm:w-14 sm:h-14 rounded-lg sm:rounded-xl bg-gray-800/50 text-gray-300 hover:text-white hover:bg-gray-700/50 transition-colors duration-300 touch-manipulation flex items-center justify-center flex-shrink-0"
               whileTap={{ scale: 0.95 }}
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 {isMobileMenuOpen ? (
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 ) : (
@@ -173,16 +173,14 @@ export default function Header() {
             {/* Logout Button */}
             <motion.button
               onClick={handleSignOut}
-              className="group relative px-3 py-2 sm:px-4 sm:py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-lg sm:rounded-xl text-red-400 hover:text-red-300 transition-all duration-300 backdrop-blur-sm touch-manipulation"
+              className="group relative w-12 h-12 sm:w-14 sm:h-14 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-lg sm:rounded-xl text-red-400 hover:text-red-300 transition-all duration-300 backdrop-blur-sm touch-manipulation flex items-center justify-center flex-shrink-0"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <span className="flex items-center space-x-1 sm:space-x-2">
-                <svg className="w-4 h-4 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                <span className="hidden sm:inline text-sm font-medium">Exit</span>
-              </span>
+              <svg className="w-5 h-5 sm:w-6 sm:h-6 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              <span className="hidden lg:inline text-sm font-medium ml-1">Exit</span>
             </motion.button>
           </div>
         </div>
