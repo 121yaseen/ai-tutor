@@ -187,87 +187,127 @@ export default function ProfileForm({ user }: { user: User }) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-16">
-      <div className="max-w-4xl mx-auto px-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-8 sm:py-12 lg:py-16">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <motion.div 
-          className="text-center mb-12"
+          className="text-center mb-8 sm:mb-12"
           initial={{ opacity: 0, y: -30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <h1 className="text-5xl font-light text-white mb-4 tracking-tight">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-light text-white mb-4 tracking-tight">
             Perfect Your <span className="font-medium bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">Profile</span>
           </h1>
-          <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg lg:text-xl text-gray-400 max-w-2xl mx-auto px-4">
             Personalize your IELTS learning experience with premium AI coaching
           </p>
         </motion.div>
 
         {/* Progress Steps */}
         <motion.div 
-          className="mb-12"
+          className="mb-8 sm:mb-12"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
         >
-          <div className="flex justify-center items-center space-x-8">
-            {steps.map((step, index) => (
-              <div key={index} className="flex items-center">
-                <div className={`relative flex items-center justify-center w-16 h-16 rounded-2xl transition-all duration-500 ${
-                  index <= currentStep 
-                    ? 'bg-gradient-to-r from-amber-500 to-orange-500 shadow-lg shadow-amber-500/25' 
-                    : 'bg-gray-800 border border-gray-700'
-                }`}>
-                  <span className="text-2xl">{step.icon}</span>
-                  {index <= currentStep && (
-                    <motion.div
-                      className="absolute inset-0 bg-gradient-to-r from-amber-400 to-orange-500 rounded-2xl"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ duration: 0.3 }}
-                      style={{ zIndex: -1 }}
-                    />
+          {/* Mobile Layout */}
+          <div className="sm:hidden">
+            <div className="flex flex-col items-center space-y-4">
+              {steps.map((step, index) => (
+                <div key={index} className="flex flex-col items-center">
+                  <div className={`relative flex items-center justify-center w-12 h-12 rounded-xl transition-all duration-500 ${
+                    index <= currentStep 
+                      ? 'bg-gradient-to-r from-amber-500 to-orange-500 shadow-lg shadow-amber-500/25' 
+                      : 'bg-gray-800 border border-gray-700'
+                  }`}>
+                    <span className="text-lg">{step.icon}</span>
+                    {index <= currentStep && (
+                      <motion.div
+                        className="absolute inset-0 bg-gradient-to-r from-amber-400 to-orange-500 rounded-xl"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ duration: 0.3 }}
+                        style={{ zIndex: -1 }}
+                      />
+                    )}
+                  </div>
+                  <div className="text-center mt-2">
+                    <h4 className={`text-sm font-medium ${index <= currentStep ? 'text-white' : 'text-gray-400'}`}>
+                      {step.title}
+                    </h4>
+                  </div>
+                  {index < steps.length - 1 && (
+                    <div className={`w-0.5 h-6 my-2 rounded-full transition-all duration-500 ${
+                      index < currentStep ? 'bg-gradient-to-b from-amber-500 to-orange-500' : 'bg-gray-700'
+                    }`} />
                   )}
                 </div>
-                {index < steps.length - 1 && (
-                  <div className={`w-16 h-1 mx-4 rounded-full transition-all duration-500 ${
-                    index < currentStep ? 'bg-gradient-to-r from-amber-500 to-orange-500' : 'bg-gray-700'
-                  }`} />
-                )}
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-          <div className="text-center mt-6">
-            <h3 className="text-2xl font-light text-white mb-2">{steps[currentStep].title}</h3>
-            <p className="text-gray-400">{steps[currentStep].description}</p>
+
+          {/* Desktop Layout */}
+          <div className="hidden sm:block">
+            <div className="flex justify-center items-center space-x-4 lg:space-x-8">
+              {steps.map((step, index) => (
+                <div key={index} className="flex items-center">
+                  <div className={`relative flex items-center justify-center w-12 h-12 lg:w-16 lg:h-16 rounded-xl lg:rounded-2xl transition-all duration-500 ${
+                    index <= currentStep 
+                      ? 'bg-gradient-to-r from-amber-500 to-orange-500 shadow-lg shadow-amber-500/25' 
+                      : 'bg-gray-800 border border-gray-700'
+                  }`}>
+                    <span className="text-lg lg:text-2xl">{step.icon}</span>
+                    {index <= currentStep && (
+                      <motion.div
+                        className="absolute inset-0 bg-gradient-to-r from-amber-400 to-orange-500 rounded-xl lg:rounded-2xl"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ duration: 0.3 }}
+                        style={{ zIndex: -1 }}
+                      />
+                    )}
+                  </div>
+                  {index < steps.length - 1 && (
+                    <div className={`w-8 lg:w-16 h-0.5 lg:h-1 mx-2 lg:mx-4 rounded-full transition-all duration-500 ${
+                      index < currentStep ? 'bg-gradient-to-r from-amber-500 to-orange-500' : 'bg-gray-700'
+                    }`} />
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="text-center mt-4 sm:mt-6">
+            <h3 className="text-xl sm:text-2xl font-light text-white mb-2">{steps[currentStep].title}</h3>
+            <p className="text-gray-400 text-sm sm:text-base">{steps[currentStep].description}</p>
           </div>
         </motion.div>
 
         {/* Form */}
         <motion.div
-          className="bg-white/5 backdrop-blur-xl rounded-3xl border border-white/10 p-8 shadow-2xl"
+          className="bg-white/5 backdrop-blur-xl rounded-2xl sm:rounded-3xl border border-white/10 p-6 sm:p-8 shadow-2xl"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
         >
-          <form onSubmit={handleSubmit} className="space-y-8">
+          <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
             {/* Step 1: Personal Information */}
             {currentStep === 0 && (
               <motion.div
                 initial={{ opacity: 0, x: 50 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5 }}
-                className="space-y-6"
+                className="space-y-4 sm:space-y-6"
               >
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-300">First Name</label>
                     <input
                       type="text"
                       value={formData.firstName}
                       onChange={(e) => setFormData({...formData, firstName: e.target.value})}
-                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300"
+                      className="w-full px-4 py-3 sm:py-4 bg-gray-800/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300 text-base touch-manipulation"
                       placeholder="Enter your first name"
                       required
                     />
@@ -278,7 +318,7 @@ export default function ProfileForm({ user }: { user: User }) {
                       type="text"
                       value={formData.lastName}
                       onChange={(e) => setFormData({...formData, lastName: e.target.value})}
-                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300"
+                      className="w-full px-4 py-3 sm:py-4 bg-gray-800/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300 text-base touch-manipulation"
                       placeholder="Enter your last name"
                       required
                     />
@@ -291,7 +331,7 @@ export default function ProfileForm({ user }: { user: User }) {
                     type="tel"
                     value={formData.phoneNumber}
                     onChange={(e) => setFormData({...formData, phoneNumber: e.target.value})}
-                    className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300"
+                    className="w-full px-4 py-3 sm:py-4 bg-gray-800/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300 text-base touch-manipulation"
                     placeholder="Enter your phone number"
                     required
                   />
@@ -302,7 +342,7 @@ export default function ProfileForm({ user }: { user: User }) {
                   <select
                     value={formData.country}
                     onChange={(e) => setFormData({...formData, country: e.target.value})}
-                    className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300"
+                    className="w-full px-4 py-3 sm:py-4 bg-gray-800/50 border border-gray-600 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300 text-base touch-manipulation"
                   >
                     {countries.map((country) => (
                       <option key={country.code} value={country.code} className="bg-gray-800">
@@ -318,7 +358,7 @@ export default function ProfileForm({ user }: { user: User }) {
                     type="text"
                     value={formData.nativeLanguage}
                     onChange={(e) => setFormData({...formData, nativeLanguage: e.target.value})}
-                    className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300"
+                    className="w-full px-4 py-3 sm:py-4 bg-gray-800/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300 text-base touch-manipulation"
                     placeholder="Enter your native language"
                     required
                   />
@@ -332,17 +372,17 @@ export default function ProfileForm({ user }: { user: User }) {
                 initial={{ opacity: 0, x: 50 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5 }}
-                className="space-y-6"
+                className="space-y-4 sm:space-y-6"
               >
-                <div className="flex items-center p-6 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl border border-blue-500/20">
+                <div className="flex items-start sm:items-center p-4 sm:p-6 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl border border-blue-500/20">
                   <input
                     type="checkbox"
                     id="previouslyAttempted"
                     checked={formData.previouslyAttempted}
                     onChange={(e) => setFormData({...formData, previouslyAttempted: e.target.checked, previousBandScore: e.target.checked ? formData.previousBandScore : null})}
-                    className="w-5 h-5 text-amber-600 bg-gray-800 border-gray-600 rounded focus:ring-amber-500 focus:ring-2"
+                    className="w-5 h-5 mt-1 sm:mt-0 text-amber-600 bg-gray-800 border-gray-600 rounded focus:ring-amber-500 focus:ring-2 touch-manipulation"
                   />
-                  <label htmlFor="previouslyAttempted" className="ml-4 block text-lg text-white">
+                  <label htmlFor="previouslyAttempted" className="ml-3 sm:ml-4 block text-base sm:text-lg text-white leading-relaxed">
                     I have previously attempted the IELTS exam
                   </label>
                 </div>
@@ -358,7 +398,7 @@ export default function ProfileForm({ user }: { user: User }) {
                     <select
                       value={formData.previousBandScore || ''}
                       onChange={(e) => setFormData({...formData, previousBandScore: parseFloat(e.target.value)})}
-                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300"
+                      className="w-full px-4 py-3 sm:py-4 bg-gray-800/50 border border-gray-600 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300 text-base touch-manipulation"
                       required={formData.previouslyAttempted}
                     >
                       <option value="">Select your previous score</option>
@@ -379,17 +419,17 @@ export default function ProfileForm({ user }: { user: User }) {
                 initial={{ opacity: 0, x: 50 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5 }}
-                className="space-y-6"
+                className="space-y-4 sm:space-y-6"
               >
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-300">Target Band Score</label>
-                  <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-3">
                     {targetScores.map((score) => (
                       <button
                         key={score}
                         type="button"
                         onClick={() => setFormData({...formData, targetBandScore: score})}
-                        className={`py-3 px-4 rounded-xl border transition-all duration-300 ${
+                        className={`py-3 sm:py-4 px-3 sm:px-4 rounded-xl border transition-all duration-300 text-sm sm:text-base font-medium touch-manipulation ${
                           formData.targetBandScore === score
                             ? 'bg-gradient-to-r from-amber-500 to-orange-500 border-amber-400 text-white shadow-lg'
                             : 'bg-gray-800/50 border-gray-600 text-gray-300 hover:border-amber-500/50'
@@ -407,19 +447,19 @@ export default function ProfileForm({ user }: { user: User }) {
                     type="date"
                     value={formData.examDate}
                     onChange={(e) => setFormData({...formData, examDate: e.target.value})}
-                    className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300"
+                    className="w-full px-4 py-3 sm:py-4 bg-gray-800/50 border border-gray-600 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300 text-base touch-manipulation"
                   />
                 </div>
               </motion.div>
             )}
 
             {/* Navigation Buttons */}
-            <div className="flex justify-between pt-8">
+            <div className="flex flex-col-reverse sm:flex-row justify-between gap-3 sm:gap-0 pt-6 sm:pt-8">
               <button
                 type="button"
                 onClick={prevStep}
                 disabled={currentStep === 0}
-                className={`px-8 py-3 rounded-xl font-medium transition-all duration-300 ${
+                className={`w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-medium transition-all duration-300 text-base touch-manipulation ${
                   currentStep === 0 
                     ? 'opacity-50 cursor-not-allowed' 
                     : 'bg-gray-700 hover:bg-gray-600 text-white'
@@ -433,7 +473,7 @@ export default function ProfileForm({ user }: { user: User }) {
                   type="button"
                   onClick={nextStep}
                   disabled={!isStepValid(currentStep)}
-                  className={`px-8 py-3 rounded-xl font-medium transition-all duration-300 ${
+                  className={`w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-medium transition-all duration-300 text-base touch-manipulation ${
                     isStepValid(currentStep)
                       ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white shadow-lg'
                       : 'opacity-50 cursor-not-allowed bg-gray-700'
@@ -446,7 +486,7 @@ export default function ProfileForm({ user }: { user: User }) {
                   type="button"
                   onClick={handleCompleteProfile}
                   disabled={isLoading || !isStepValid(currentStep)}
-                  className={`px-8 py-3 rounded-xl font-medium transition-all duration-300 flex items-center space-x-2 ${
+                  className={`w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-medium transition-all duration-300 flex items-center justify-center space-x-2 text-base touch-manipulation ${
                     !isLoading && isStepValid(currentStep)
                       ? 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-white shadow-lg'
                       : 'opacity-50 cursor-not-allowed bg-gray-700'
