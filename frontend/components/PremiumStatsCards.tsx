@@ -149,18 +149,18 @@ export default function PremiumStatsCards({
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {[...Array(4)].map((_, index) => (
           <motion.div 
             key={index} 
-            className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10 animate-pulse"
+            className="bg-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-white/10 animate-pulse"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
           >
-            <div className="h-6 bg-gray-600 rounded w-3/4 mb-4"></div>
-            <div className="h-10 bg-gray-600 rounded w-1/2 mb-2"></div>
-            <div className="h-4 bg-gray-600 rounded w-2/3"></div>
+            <div className="h-4 sm:h-6 bg-gray-600 rounded w-3/4 mb-3 sm:mb-4"></div>
+            <div className="h-8 sm:h-10 bg-gray-600 rounded w-1/2 mb-2"></div>
+            <div className="h-3 sm:h-4 bg-gray-600 rounded w-2/3"></div>
           </motion.div>
         ))}
       </div>
@@ -168,11 +168,11 @@ export default function PremiumStatsCards({
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
       {statCards.map((card, index) => (
         <motion.div
           key={index}
-          className={`relative group bg-gradient-to-br ${card.bgGradient} backdrop-blur-xl rounded-2xl p-6 border border-gradient-to-r ${card.borderGradient} shadow-2xl hover:shadow-xl transition-all duration-500`}
+          className={`relative group bg-gradient-to-br ${card.bgGradient} backdrop-blur-xl rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-gradient-to-r ${card.borderGradient} shadow-xl sm:shadow-2xl hover:shadow-xl transition-all duration-500 touch-manipulation`}
           initial={{ opacity: 0, y: 30, scale: 0.9 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ 
@@ -181,31 +181,31 @@ export default function PremiumStatsCards({
             ease: [0.215, 0.61, 0.355, 1]
           }}
           whileHover={{ 
-            scale: 1.05, 
-            rotateY: 5,
+            scale: 1.02, 
             transition: { duration: 0.3 }
           }}
+          whileTap={{ scale: 0.98 }}
         >
           {/* Glow Effect */}
-          <div className={`absolute inset-0 bg-gradient-to-r ${card.gradient} opacity-0 group-hover:opacity-20 rounded-2xl blur-xl transition-opacity duration-500`}></div>
+          <div className={`absolute inset-0 bg-gradient-to-r ${card.gradient} opacity-0 group-hover:opacity-20 rounded-xl sm:rounded-2xl blur-xl transition-opacity duration-500`}></div>
           
           {/* Content */}
           <div className="relative z-10">
             {/* Header */}
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-gray-300 text-sm font-medium uppercase tracking-wider">{card.title}</h3>
-                <p className="text-xs text-gray-500 mt-1">{card.subtitle}</p>
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <div className="flex-1 min-w-0">
+                <h3 className="text-gray-300 text-xs sm:text-sm font-medium uppercase tracking-wider truncate">{card.title}</h3>
+                <p className="text-xs text-gray-500 mt-1 truncate">{card.subtitle}</p>
               </div>
-              <div className={`w-12 h-12 bg-gradient-to-r ${card.gradient} rounded-2xl flex items-center justify-center shadow-lg`}>
-                <span className="text-2xl">{card.icon}</span>
+              <div className={`w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r ${card.gradient} rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0 ml-2`}>
+                <span className="text-lg sm:text-2xl">{card.icon}</span>
               </div>
             </div>
 
             {/* Main Value */}
-            <div className="mb-4">
+            <div className="mb-3 sm:mb-4">
               <motion.div 
-                className="text-4xl font-bold text-white mb-2"
+                className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2"
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: (index * 0.1) + 0.3, duration: 0.5, type: "spring" }}
