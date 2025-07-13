@@ -1,0 +1,63 @@
+{
+    "part1": {
+        "basic": [
+            "Do you work or study?",
+            "What do you like to do in your free time?",
+            "What kind of music do you like?",
+            "Do you prefer to stay at home or go out in the evening?",
+            "where are you from?",
+            "Tell me about your hometown."
+        ],
+        "intermediate": [
+            "How has your hometown changed in recent years?",
+            "What are the advantages and disadvantages of your job/studies?",
+            "How do you think technology has changed the way people spend their free time?",
+            "What role does music play in your culture?",
+            "How do you think people's social habits have changed over the years?"
+        ],
+        "advanced": [
+            "In what ways do you think your hometown could be improved?",
+            "How do you think the job market will change in the future?",
+            "Do you think people today have more or less free time than in the past? Why?",
+            "How important is preserving traditional music in your country?",
+            "What impact do you think social media has had on genuine human connections?"
+        ]
+    },
+    "part2": {
+        "basic": [
+            "Describe a person who is important to you. You should say: who this person is, how you know them, what they are like, and explain why they are important to you.",
+            "Describe a place you like to visit. You should say: where it is, when you go there, what you do there, and explain why you like this place.",
+            "Describe something you bought recently. You should say: what it was, where you bought it, why you bought it, and explain how you felt about this purchase."
+        ],
+        "intermediate": [
+            "Describe a memorable journey you have taken. You should say: where you went, who you went with, what happened during the journey, and explain why it was memorable.",
+            "Describe a skill you would like to learn. You should say: what the skill is, why you want to learn it, how you would learn it, and explain how this skill would benefit you.",
+            "Describe an interesting tradition in your country. You should say: what the tradition is, when it happens, how people celebrate it, and explain why you find it interesting."
+        ],
+        "advanced": [
+            "Describe a time when you had to make a difficult decision. You should say: what the decision was, what options you had, how you made the decision, and explain what you learned from this experience.",
+            "Describe a global issue that concerns you. You should say: what the issue is, how it affects people, what causes this issue, and explain what you think should be done about it.",
+            "Describe a technological advancement that has changed people's lives. You should say: what the advancement is, how it has changed lives, what the positive and negative effects are, and explain your opinion about this change."
+        ]
+    },
+    "part3": {
+        "basic": [
+            "What are the benefits of having good friends?",
+            "How do people in your country usually spend their weekends?",
+            "What are some popular hobbies in your country?",
+            "Do you think it's important for children to play sports? Why?"
+        ],
+        "intermediate": [
+            "How do you think social relationships have changed with technology?",
+            "What role should the government play in people's leisure activities?",
+            "How do you think people's hobbies reflect their personality?",
+            "What are the advantages and disadvantages of competitive sports?"
+        ],
+        "advanced": [
+            "In what ways might artificial intelligence change human relationships in the future?",
+            "Should governments invest more in sports facilities or cultural institutions? Why?",
+            "How do you think the concept of work-life balance will evolve in the coming decades?",
+            "What ethical considerations should be taken into account when developing new technologies?"
+        ]
+    }
+}
