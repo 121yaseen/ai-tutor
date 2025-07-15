@@ -13,6 +13,7 @@ charset-normalizer==3.4.2
 click==8.2.1
 colorama==0.4.6
 coloredlogs==15.0.1
+coverage==7.9.1
 deprecation==2.1.0
 distro==1.9.0
 docstring_parser==0.16
@@ -70,7 +71,7 @@ propcache==0.3.2
 proto-plus==1.26.1
 protobuf==6.31.1
 psutil==7.0.0
-psycopg2==2.9.10
+psycopg2-binary==2.9.10
 psycopg2-binary==2.9.10
 pyasn1==0.6.1
 pyasn1_modules==0.4.2
@@ -80,8 +81,9 @@ pydantic_core==2.33.2
 Pygments==2.19.2
 PyJWT==2.10.1
 pytest==8.4.1
-pytest-mock==3.14.1
 pytest-asyncio==0.24.0
+pytest-cov==6.2.1
+pytest-mock==3.14.1
 python-dateutil==2.9.0.post0
 python-dotenv==1.1.0
 PyYAML==6.0.2
