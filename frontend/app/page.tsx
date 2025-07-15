@@ -11,14 +11,7 @@ export default async function Page() {
     return redirect('/login')
   }
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('onboarding_completed')
-    .single()
-
-  if (profile && !profile.onboarding_completed) {
-    return redirect('/onboarding')
-  }
+  // Removed onboarding check and redirect
 
   return (
     <main className="h-full bg-gray-900">

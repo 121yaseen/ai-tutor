@@ -21,9 +21,8 @@ export async function GET(request: NextRequest) {
         .eq('id', data.user.id)
         .single()
       
-      // If no profile exists, create one and redirect to onboarding
+      // If no profile exists, create one with flags and redirect to onboarding
       if (!profile) {
-        // Create basic profile for SSO user
         await supabase.from('profiles').insert([
           {
             id: data.user.id,
@@ -32,12 +31,19 @@ export async function GET(request: NextRequest) {
                       data.user.email?.split('@')[0] || 
                       'User',
             updated_at: new Date().toISOString(),
+            onboarding_completed: false,
+            onboarding_presented: false,
           }
         ])
         return NextResponse.redirect(`${origin}/onboarding`)
       }
+
+      // For existing profiles, check if onboarding has been presented
+      if (!profile.onboarding_presented) {
+        return NextResponse.redirect(`${origin}/onboarding`)
+      }
       
-      // If profile exists, redirect to results page
+      // If presented, redirect to results
       return NextResponse.redirect(`${origin}/results`)
     }
   }
