@@ -1,0 +1,31 @@
+name: Deploy LiveKit Agent to GCE
+
+on:
+  push:
+    branches:
+      - working-branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🚚 Deploy to GCE VM
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            # Navigate to your project directory
+            cd ai-tutor
+
+            # Pull the latest changes from the main branch
+            git pull origin working-branch
+
+            # Kill the old running process to allow a restart
+            # The '|| true' prevents the workflow from failing if the process isn't running
+            pkill -f ./scripts/run_backend.sh || true
+
+            # Start the agent in the background
+            nohup ./scripts/run_backend.sh > backend.log 2>&1 &
