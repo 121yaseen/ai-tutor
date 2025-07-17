@@ -1,5 +1,5 @@
 
-import OnboardingForm from '@/components/OnboardingForm'
+import ProfileForm from '@/components/ProfileForm'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 
@@ -30,7 +30,7 @@ export default async function OnboardingPage() {
 
   return (
     <div className="container mx-auto p-4 sm:p-8 bg-gray-900 min-h-screen">
-      <OnboardingForm user={user} />
+      <ProfileForm user={user} isOnboarding={true} />
     </div>
   )
 }

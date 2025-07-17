@@ -2,6 +2,46 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom styles for react-international-phone */
+.react-international-phone-input-container {
+  width: 100%;
+}
+
+.react-international-phone-input {
+  width: 100% !important;
+  background-color: rgba(31, 41, 55, 0.5) !important; /* bg-gray-800/50 */
+  border: 1px solid #4b5563 !important; /* border-gray-600 */
+  color: white !important;
+  border-left: 0 !important;
+  border-radius: 0 0.75rem 0.75rem 0 !important; /* rounded-xl on the right */
+}
+
+.react-international-phone-country-selector-button {
+  background-color: rgba(55, 65, 81, 0.5) !important; /* bg-gray-700/50 */
+  border: 1px solid #4b5563 !important; /* border-gray-600 */
+  border-right: 0 !important;
+  border-radius: 0.75rem 0 0 0.75rem !important;
+}
+
+.react-international-phone-dropdown {
+  background-color: #1f2937 !important; /* bg-gray-800 */
+  border: 1px solid #4b5563 !important; /* border-gray-600 */
+}
+
+.react-international-phone-search-input {
+  background-color: #374151 !important; /* bg-gray-700 */
+  color: white !important;
+  border-radius: 0.5rem !important;
+}
+
+.react-international-phone-country-list-item:hover {
+  background-color: #374151 !important; /* bg-gray-700 */
+}
+
+.react-international-phone-country-list-item--selected {
+  background-color: #ca8a04 !important; /* amber-500 */
+}
+
 /* Dark theme base styles */
 @layer base {
   :root {

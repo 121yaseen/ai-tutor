@@ -44,7 +44,7 @@ export default function Header() {
     }
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+  }, [supabase])
 
   useEffect(() => {
     const currentItem = navigationItems.find(item => item.href === pathname)
