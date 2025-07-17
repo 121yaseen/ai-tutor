@@ -1,0 +1,1 @@
+# Repositories module with proper repository pattern implementation 
