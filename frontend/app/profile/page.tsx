@@ -13,5 +13,5 @@ export default async function ProfilePage() {
     redirect('/login')
   }
 
-  return <ProfileForm user={user} />
+  return <ProfileForm user={user} isOnboarding={false} />
 } 

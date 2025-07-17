@@ -31,7 +31,7 @@ function LoginForm() {
           redirectTo: `${window.location.origin}/auth/callback`
         }
       })
-    } catch (err) {
+    } catch {
       setError('An unexpected error occurred')
       setIsLoading(false)
     }
