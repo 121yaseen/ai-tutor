@@ -9,7 +9,7 @@ import json
 from datetime import datetime, timezone
 from typing import Optional, Dict, Any, List, Union, Type, TypeVar
 from uuid import UUID, uuid4
-from pydantic import BaseModel, Field, validator, root_validator
+from pydantic import BaseModel, Field, validator, root_validator, ConfigDict
 from enum import Enum
 
 from ..core.logging import get_logger
@@ -46,21 +46,12 @@ class BaseEntityModel(BaseModel):
     and utility methods for all entities in the system.
     """
     
-    class Config:
-        """Pydantic configuration."""
-        # Use enum values instead of enum objects in serialization
-        use_enum_values = True
-        # Allow population by field name or alias
-        allow_population_by_field_name = True
-        # Validate assignment after object creation
-        validate_assignment = True
-        # Extra fields not allowed by default (can be overridden)
-        extra = "forbid"
-        # Use orjson for faster JSON serialization
-        json_encoders = {
-            datetime: lambda v: v.isoformat() if v else None,
-            UUID: lambda v: str(v) if v else None,
-        }
+    model_config = ConfigDict(
+        validate_assignment=True,
+        populate_by_name=True,
+        use_enum_values=True,
+        from_attributes=True,
+    )
     
     def to_dict(self, exclude_none: bool = True, **kwargs) -> Dict[str, Any]:
         """

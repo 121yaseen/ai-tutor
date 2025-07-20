@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 
 from livekit import agents
 from livekit.agents import AgentSession, Agent, RoomInputOptions
-from livekit.plugins import google, noise_cancellation
+from livekit.plugins import google, noise_cancellation, silero
 from google.genai.types import Modality
 
 # Import our clean architecture components
@@ -79,6 +79,7 @@ class SessionManager:
             # Create agent session with noise cancellation
             session = AgentSession(
                 llm=llm,
+                vad=silero.VAD.load(),
             )
             
             self.logger.info(
