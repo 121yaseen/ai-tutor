@@ -176,29 +176,47 @@ def setup_logging():
             }
         },
         "loggers": {
-            # Application loggers
-            "src": {
-                "level": settings.app.log_level,
-                "handlers": ["console"],
-                "propagate": False
-            },
-            "performance": {
+            "uvicorn": {
                 "level": "INFO",
                 "handlers": ["console"],
+                "propagate": False,
+            },
+            "src": {
+                "level": "WARNING",
+                "handlers": ["console"],
+                "propagate": False,
+            },
+            "httpx": {
+                "level": "WARNING",
+                "handlers": ["console"],
                 "propagate": False
             },
-            # Third-party loggers
+            "websockets": {
+                "level": "WARNING",
+                "handlers": ["console"],
+                "propagate": False
+            },
             "livekit": {
                 "level": "WARNING",
                 "handlers": ["console"],
                 "propagate": False
             },
-            "psycopg2": {
+            "livekit.agents": {
                 "level": "WARNING",
                 "handlers": ["console"],
                 "propagate": False
             },
-            "httpx": {
+            "google_genai": {
+                "level": "WARNING",
+                "handlers": ["console"],
+                "propagate": False
+            },
+            "asyncio": {
+                "level": "WARNING",
+                "handlers": ["console"],
+                "propagate": False
+            },
+            "performance": {
                 "level": "WARNING",
                 "handlers": ["console"],
                 "propagate": False

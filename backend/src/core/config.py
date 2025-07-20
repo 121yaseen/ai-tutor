@@ -114,7 +114,7 @@ class ApplicationConfig(BaseSettings):
     debug: bool = Field(False, env="DEBUG")
     
     # Logging settings
-    log_level: str = Field("INFO", env="LOG_LEVEL")
+    log_level: str = Field("WARNING", env="LOG_LEVEL")
     log_format: str = Field("json", env="LOG_FORMAT")  # json or text
     
     # Session settings
