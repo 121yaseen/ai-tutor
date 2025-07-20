@@ -8,7 +8,7 @@ proper typing, and business logic for the IELTS examination system.
 from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any, Union
 from uuid import UUID
-from pydantic import Field, validator, root_validator
+from pydantic import Field, validator, root_validator, model_validator
 
 from .base import (
     BaseEntityModel, 
@@ -118,7 +118,7 @@ class TestAnswer(BaseEntityModel):
             return v
         return [r.strip() for r in v if r and r.strip()]
     
-    @root_validator
+    @model_validator(mode='before')
     def validate_part_specific_data(cls, values):
         """Validate data based on test part requirements."""
         part = values.get('part')
@@ -274,7 +274,7 @@ class TestResult(BaseEntityModel, TimestampMixin):
         
         return validated_answers
     
-    @root_validator
+    @model_validator(mode='before')
     def validate_band_score_consistency(cls, values):
         """Ensure band score is consistent with detailed scores."""
         detailed_scores = values.get('detailed_scores')
@@ -403,9 +403,9 @@ class StudentProfile(BaseEntityModel, TimestampMixin):
         # Sort by test date (newest first)
         return sorted(validated_history, key=lambda x: x.test_date, reverse=True)
     
-    @root_validator
+    @model_validator(mode='before')
     def update_computed_fields(cls, values):
-        """Update computed fields based on history."""
+        """Update computed fields based on history before validation."""
         history = values.get('history', [])
         
         if history:

@@ -12,16 +12,23 @@ from pydantic import Field, validator
 from pydantic_settings import BaseSettings
 from pydantic import PostgresDsn
 from functools import lru_cache
+from dotenv import load_dotenv
+import logging
 
+# Basic logging setup for debugging this file
+logging.basicConfig(level=logging.INFO)
+log = logging.getLogger(__name__)
+
+env_path = Path(__file__).parent.parent.parent / ".env"
 
 class DatabaseConfig(BaseSettings):
     """Database configuration settings."""
     
-    host: str = Field(..., env="DB_HOST")
-    port: int = Field(5432, env="DB_PORT")
-    user: str = Field(..., env="DB_USER")
-    password: str = Field(..., env="DB_PASSWORD")
-    database: str = Field(..., env="DB_NAME")
+    host: Optional[str] = Field(None, env="DB_HOST")
+    port: Optional[int] = Field(5432, env="DB_PORT")
+    user: Optional[str] = Field(None, env="DB_USER")
+    password: Optional[str] = Field(None, env="DB_PASSWORD")
+    database: Optional[str] = Field(None, env="DB_NAME")
     connection_string: Optional[str] = Field(None, env="SUPABASE_CONNECTION_STRING")
     test_connection_string: Optional[str] = Field(None, env="TEST_SUPABASE_CONNECTION_STRING")
     pool_size: int = Field(10, env="DB_POOL_SIZE")
@@ -29,6 +36,10 @@ class DatabaseConfig(BaseSettings):
     pool_timeout: int = Field(30, env="DB_POOL_TIMEOUT")
     pool_recycle: int = Field(3600, env="DB_POOL_RECYCLE")
     
+    @validator("connection_string", pre=True, always=True)
+    def get_connection_string(cls, v):
+        return v or os.getenv("SUPABASE_CONNECTION_STRING")
+
     @validator("connection_string", pre=True, always=True)
     def validate_connection_string(cls, v, values):
         """Validate database connection string."""
@@ -48,20 +59,32 @@ class DatabaseConfig(BaseSettings):
         return None
 
     class Config:
-        env_file = ".env"
         env_file_encoding = "utf-8"
+        extra = "ignore"
 
 
 class LiveKitConfig(BaseSettings):
     """LiveKit configuration settings."""
     
-    api_key: str = Field(..., env="LIVEKIT_API_KEY")
-    api_secret: str = Field(..., env="LIVEKIT_API_SECRET")
-    url: str = Field(..., env="LIVEKIT_URL")
+    api_key: Optional[str] = Field(None, env="LIVEKIT_API_KEY")
+    api_secret: Optional[str] = Field(None, env="LIVEKIT_API_SECRET")
+    url: Optional[str] = Field(None, env="LIVEKIT_URL")
     
+    @validator("api_key", pre=True, always=True)
+    def get_api_key(cls, v):
+        return v or os.getenv("LIVEKIT_API_KEY")
+
+    @validator("api_secret", pre=True, always=True)
+    def get_api_secret(cls, v):
+        return v or os.getenv("LIVEKIT_API_SECRET")
+
+    @validator("url", pre=True, always=True)
+    def get_url(cls, v):
+        return v or os.getenv("LIVEKIT_URL")
+
     class Config:
-        env_file = ".env"
         env_file_encoding = "utf-8"
+        extra = "ignore"
 
 
 class GoogleAIConfig(BaseSettings):
@@ -71,10 +94,14 @@ class GoogleAIConfig(BaseSettings):
     project_id: Optional[str] = Field(None, env="GOOGLE_PROJECT_ID")
     model_name: str = Field("gemini-live-2.5-flash-preview", env="GOOGLE_MODEL_NAME")
     voice: str = Field("Leda", env="GOOGLE_VOICE")
+
+    @validator("api_key", pre=True, always=True)
+    def get_api_key(cls, v):
+        return v or os.getenv("GOOGLE_AI_API_KEY")
     
     class Config:
-        env_file = ".env"
         env_file_encoding = "utf-8"
+        extra = "ignore"
 
 
 class ApplicationConfig(BaseSettings):
@@ -89,9 +116,6 @@ class ApplicationConfig(BaseSettings):
     # Logging settings
     log_level: str = Field("INFO", env="LOG_LEVEL")
     log_format: str = Field("json", env="LOG_FORMAT")  # json or text
-    
-    # Security settings
-    secret_key: str = Field(..., env="SECRET_KEY")
     
     # Session settings
     session_timeout: int = Field(1800, env="SESSION_TIMEOUT")  # 30 minutes
@@ -133,14 +157,16 @@ class ApplicationConfig(BaseSettings):
         return self.environment == "testing"
 
     class Config:
-        env_file = ".env"
         env_file_encoding = "utf-8"
+        extra = "ignore"
 
 
 class Settings:
     """Main settings container that combines all configuration."""
     
     def __init__(self):
+        """Main settings container that combines all configuration."""
+        
         self.app = ApplicationConfig()
         self.database = DatabaseConfig()
         self.livekit = LiveKitConfig()
@@ -151,11 +177,11 @@ class Settings:
     
     def _validate_settings(self):
         """Validate that all required settings are present."""
+        log.info("Validating settings...")
         required_validations = [
             (self.database.connection_string, "Database connection string is required"),
             (self.livekit.api_key, "LiveKit API key is required"),
             (self.livekit.api_secret, "LiveKit API secret is required"),
-            (self.app.secret_key, "Application secret key is required"),
         ]
         
         for value, error_msg in required_validations:
@@ -202,6 +228,7 @@ class Settings:
 @lru_cache()
 def get_settings() -> Settings:
     """Get cached settings instance."""
+    load_dotenv()
     return Settings()
 
 
