@@ -11,8 +11,7 @@ from uuid import UUID
 from pydantic import Field, validator, root_validator, model_validator
 
 from .base import (
-    BaseEntityModel, 
-    TimestampMixin, 
+    BaseEntityModel,
     DifficultyLevel, 
     TestPart, 
     TestStatus,
@@ -176,7 +175,7 @@ class TestFeedback(BaseEntityModel):
         return {k: str(val).strip() for k, val in v.items() if val and str(val).strip()}
 
 
-class TestResult(BaseEntityModel, TimestampMixin):
+class TestResult(BaseEntityModel):
     """Comprehensive test result model."""
     
     test_number: int = Field(
@@ -326,7 +325,7 @@ class TestResult(BaseEntityModel, TimestampMixin):
         }
 
 
-class StudentProfile(BaseEntityModel, TimestampMixin):
+class StudentProfile(BaseEntityModel):
     """Enhanced student profile model."""
     
     email: str = Field(..., description="Student's email address")
