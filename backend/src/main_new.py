@@ -79,9 +79,6 @@ class SessionManager:
             # Create agent session with noise cancellation
             session = AgentSession(
                 llm=llm,
-                room_input_options=RoomInputOptions(
-                    noise_cancellation=noise_cancellation.BVC(),
-                ),
             )
             
             self.logger.info(
@@ -427,7 +424,13 @@ async def entrypoint(ctx: agents.JobContext):
         
         # Step 5: Start the agent session
         logger.info("Starting agent session")
-        await session.start(room=ctx.room, agent=agent)
+        await session.start(
+            room=ctx.room,
+            agent=agent,
+            room_input_options=RoomInputOptions(
+                noise_cancellation=noise_cancellation.BVC(),
+            ),
+        )
         
         # Step 6: Generate and send initial instructions
         logger.info("Sending initial instructions to agent")

@@ -64,7 +64,7 @@ class StudentRepository(BaseRepository[StudentProfile]):
             raise validation_error("Email is required", field_name="email")
         
         query = sql.SQL("""
-            SELECT email, name, history, created_at, updated_at
+            SELECT email, name, history
             FROM {} 
             WHERE email = %s
         """).format(sql.Identifier(self.table_name))
@@ -91,8 +91,6 @@ class StudentRepository(BaseRepository[StudentProfile]):
                 'email': result['email'],
                 'name': result['name'],
                 'history': history_data,
-                'created_at': result.get('created_at'),
-                'updated_at': result.get('updated_at')
             }
             
             student = StudentProfile(**student_data)
@@ -141,21 +139,17 @@ class StudentRepository(BaseRepository[StudentProfile]):
         # Validate student data
         student.validate_self()
         
-        # Update timestamp
-        student.update_timestamp()
-        
         # Serialize history
         history_json = orjson.dumps([test.to_dict() for test in student.history]).decode('utf-8')
         
         query = sql.SQL("""
-            INSERT INTO {} (email, name, history, created_at, updated_at)
-            VALUES (%s, %s, %s, %s, %s)
+            INSERT INTO {} (email, name, history)
+            VALUES (%s, %s, %s)
             ON CONFLICT (email) 
             DO UPDATE SET 
                 name = EXCLUDED.name,
-                history = EXCLUDED.history,
-                updated_at = EXCLUDED.updated_at
-            RETURNING email, name, history, created_at, updated_at
+                history = EXCLUDED.history
+            RETURNING email, name, history
         """).format(sql.Identifier(self.table_name))
         
         try:
@@ -165,8 +159,6 @@ class StudentRepository(BaseRepository[StudentProfile]):
                     student.email,
                     student.name,
                     history_json,
-                    student.created_at,
-                    student.updated_at
                 ),
                 fetch_one=True
             )
