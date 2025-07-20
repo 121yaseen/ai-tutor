@@ -258,7 +258,7 @@ def reset_container() -> None:
 
 def get_student_service(use_test_db: bool = False) -> 'StudentService':
     """
-    Get student service instance.
+    Get student service instance with proper dependencies.
     
     Args:
         use_test_db: Whether to use test database
@@ -313,21 +313,4 @@ def get_profile_repository(use_test_db: bool = False) -> 'ProfileRepository':
     """
     container = get_container()
     repo_name = "test_profile_repository" if use_test_db else "profile_repository"
-    return container.get(repo_name)
-
-
-def reset_container():
-    """Reset the container to its initial state (useful for testing)."""
-    global _container
-    _container = None
-    logger.info("Dependency injection container reset")
-
-
-def get_student_service(use_test_db: bool = False) -> 'StudentService':
-    """Get student service instance with optional test database."""
-    container = get_container()
-    
-    if use_test_db:
-        return container.get_service("test_student_service")
-    else:
-        return container.get_service("student_service") 
+    return container.get(repo_name) 
