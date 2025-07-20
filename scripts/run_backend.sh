@@ -9,4 +9,4 @@ source venv/bin/activate
 
 # Change to backend directory and run the main_new application in dev mode
 cd backend
-python -m src.main_new dev 
+python -m src.main_new start 

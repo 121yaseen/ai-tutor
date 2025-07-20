@@ -77,7 +77,6 @@ class ProfileRepository(BaseRepository):
                 p.country,
                 p.native_language,
                 p.onboarding_completed,
-                p.created_at,
                 p.updated_at
             FROM
                 auth.users u
@@ -215,7 +214,6 @@ class ProfileRepository(BaseRepository):
                 country,
                 native_language,
                 onboarding_completed,
-                created_at,
                 updated_at
             FROM {}
             WHERE id = %s
