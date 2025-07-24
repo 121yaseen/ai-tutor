@@ -338,6 +338,9 @@ class SessionManager:
         Returns:
             Complete instruction string for the agent
         """
+        print("-------------------------------User Data Instructions-------------------------------")
+        print(user_data_instructions)
+        print("--------------------------------------------------------------")
         instructions = f"""{user_data_instructions}
 
 Your instructions for this session are based on the data above.
