@@ -61,29 +61,30 @@ class ProfileRepository(BaseRepository):
         if not email:
             raise validation_error("Email is required", field_name="email")
         
-        # Query to get profile data based on user's email from auth.users and profiles table
+        # Query to get profile data directly from profiles table using email
         query = sql.SQL("""
             SELECT
-                p.id,
-                p.full_name,
-                p.first_name,
-                p.last_name,
-                p.phone_number,
-                p.preparing_for,
-                p.previously_attempted_exam,
-                p.previous_band_score,
-                p.exam_date,
-                p.target_band_score,
-                p.country,
-                p.native_language,
-                p.onboarding_completed,
-                p.updated_at
+                id,
+                email,
+                full_name,
+                first_name,
+                last_name,
+                phone_number,
+                preparing_for,
+                previously_attempted_exam,
+                previous_band_score,
+                exam_date,
+                target_band_score,
+                country,
+                native_language,
+                onboarding_completed,
+                onboarding_presented,
+                created_at,
+                updated_at
             FROM
-                auth.users u
-            JOIN
-                public.profiles p ON u.id = p.id
+                public.profiles
             WHERE
-                u.email = %s
+                email = %s
         """)
         
         try:
