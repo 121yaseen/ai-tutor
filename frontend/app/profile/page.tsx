@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import ProfileForm from '@/components/ProfileForm'
+import { getProfile } from '@/lib/actions'
 
 export default async function ProfilePage() {
   const supabase = createClient()
@@ -13,5 +14,7 @@ export default async function ProfilePage() {
     redirect('/login')
   }
 
-  return <ProfileForm user={user} isOnboarding={false} />
+  const profile = await getProfile()
+
+  return <ProfileForm profile={profile} isOnboarding={false} />
 } 
