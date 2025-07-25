@@ -35,8 +35,8 @@ class UserRepository(BaseRepository):
     
     @property
     def table_name(self) -> str:
-        """Return the table name for auth users."""
-        return "auth.users"
+        """Return the table name for profiles."""
+        return "profiles"
     
     @property
     def model_class(self):
@@ -60,13 +60,12 @@ class UserRepository(BaseRepository):
         if not email:
             raise validation_error("Email is required", field_name="email")
         
-        # Query to join auth.users with profiles table
+        # Query to get user name from profiles table
         query = sql.SQL("""
             SELECT
-                COALESCE(P.first_name, '') || ' ' || COALESCE(P.last_name, '') AS full_name
-            FROM auth.users AS U
-            JOIN profiles AS P ON P.id = U.id
-            WHERE U.email = %s
+                COALESCE(first_name, '') || ' ' || COALESCE(last_name, '') AS full_name
+            FROM profiles
+            WHERE email = %s
         """)
         
         try:
@@ -159,13 +158,12 @@ class UserRepository(BaseRepository):
         
         query = sql.SQL("""
             SELECT 
-                U.id,
-                U.email,
-                U.created_at,
-                U.email_confirmed_at,
-                U.last_sign_in_at
-            FROM auth.users AS U
-            WHERE U.email = %s
+                id,
+                email,
+                created_at,
+                updated_at
+            FROM profiles
+            WHERE email = %s
         """)
         
         try:
@@ -195,7 +193,7 @@ class UserRepository(BaseRepository):
             )
             raise database_error(
                 f"Failed to find user: {e}",
-                table="auth.users",
+                table="profiles",
                 original_exception=e
             )
     
@@ -237,13 +235,13 @@ class UserRepository(BaseRepository):
         
         query = sql.SQL("""
             SELECT 
-                U.id,
-                U.email,
-                U.email_confirmed_at IS NOT NULL as email_confirmed,
-                U.last_sign_in_at,
-                U.created_at
-            FROM auth.users AS U
-            WHERE U.email = %s
+                id,
+                email,
+                true as email_confirmed,
+                updated_at as last_sign_in_at,
+                created_at
+            FROM profiles
+            WHERE email = %s
         """)
         
         try:
@@ -278,6 +276,6 @@ class UserRepository(BaseRepository):
             )
             raise database_error(
                 f"Failed to get auth info: {e}",
-                table="auth.users",
+                table="profiles",
                 original_exception=e
             ) 

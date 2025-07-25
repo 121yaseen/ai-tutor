@@ -31,13 +31,12 @@ class UserDB:
                 connect_timeout=10
             ) as conn:
                 with conn.cursor() as cursor:
-                    # Execute the exact query provided by user
+                    # Execute query to get user name from profiles table
                     query = """
                     SELECT
-                        COALESCE(P.first_name, '') || ' ' || COALESCE(P.last_name, '') AS full_name
-                    FROM auth.users AS U
-                    JOIN profiles AS P ON P.id = U.id
-                    WHERE U.email = %s
+                        COALESCE(first_name, '') || ' ' || COALESCE(last_name, '') AS full_name
+                    FROM profiles
+                    WHERE email = %s
                     """
                     cursor.execute(query, (email,))
                     result = cursor.fetchone()
