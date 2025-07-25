@@ -146,10 +146,13 @@ class ProfileRepository(BaseRepository):
             if not complete_profile:
                 return None
             
-            # Format profile data for instructions
+            # Format profile data for instructions - include ALL profile details
             profile_json = {
+                "email": complete_profile.get("email"),
+                "full_name": complete_profile.get("full_name"),
                 "first_name": complete_profile.get("first_name"),
                 "last_name": complete_profile.get("last_name"),
+                "phone_number": complete_profile.get("phone_number"),
                 "preparing_for": complete_profile.get("preparing_for"),
                 "previously_attempted_exam": complete_profile.get("previously_attempted_exam"),
                 "previous_band_score": complete_profile.get("previous_band_score"),
@@ -157,6 +160,10 @@ class ProfileRepository(BaseRepository):
                 "target_band_score": complete_profile.get("target_band_score"),
                 "country": complete_profile.get("country"),
                 "native_language": complete_profile.get("native_language"),
+                "onboarding_completed": complete_profile.get("onboarding_completed"),
+                "onboarding_presented": complete_profile.get("onboarding_presented"),
+                "created_at": str(complete_profile["created_at"]) if complete_profile.get("created_at") else None,
+                "updated_at": str(complete_profile["updated_at"]) if complete_profile.get("updated_at") else None,
             }
             
             # Remove None values for cleaner output
