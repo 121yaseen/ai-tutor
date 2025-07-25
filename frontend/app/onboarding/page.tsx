@@ -1,5 +1,6 @@
 
 import ProfileForm from '@/components/ProfileForm'
+import { getProfile } from '@/lib/actions'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 
@@ -14,23 +15,15 @@ export default async function OnboardingPage() {
     redirect('/login')
   }
 
-  // Check and set onboarding_presented
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('onboarding_presented')
-    .eq('id', user.id)
-    .single()
+  const profile = await getProfile()
 
-  if (profile && !profile.onboarding_presented) {
-    await supabase
-      .from('profiles')
-      .update({ onboarding_presented: true })
-      .eq('id', user.id)
-  }
+  // The logic for 'onboarding_presented' will be handled differently,
+  // likely within the ProfileForm or a separate action.
+  // For now, we fetch the profile and pass it down.
 
   return (
     <div className="container mx-auto p-4 sm:p-8 bg-gray-900 min-h-screen">
-      <ProfileForm user={user} isOnboarding={true} />
+      <ProfileForm isOnboarding={true} profile={profile} />
     </div>
   )
 }

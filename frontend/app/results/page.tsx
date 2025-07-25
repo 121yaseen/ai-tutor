@@ -1,3 +1,4 @@
+import { getProfile, getStudentHistory } from '@/lib/actions'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import PremiumStatsCards from '@/components/PremiumStatsCards'
@@ -16,11 +17,8 @@ export default async function ResultsPage() {
     redirect('/login')
   }
 
-  // Get user profile for target score
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('target_band_score, first_name, exam_date')
-    .single()
+  const profile = await getProfile()
+  const history = await getStudentHistory()
 
   const targetScore = profile?.target_band_score || 7.5
   const firstName = profile?.first_name || 'Student'
@@ -53,7 +51,7 @@ export default async function ResultsPage() {
           </div>
 
           {/* Premium Stats Grid */}
-          <PremiumStatsCards userEmail={user.email!} targetScore={targetScore} />
+          <PremiumStatsCards profile={profile} history={history} />
         </div>
       </div>
 
@@ -61,19 +59,19 @@ export default async function ResultsPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16 space-y-8 sm:space-y-12 lg:space-y-16">
         {/* Performance Visualization */}
         <div className="bg-white/5 backdrop-blur-xl rounded-2xl sm:rounded-3xl border border-white/10 p-4 sm:p-6 lg:p-8 shadow-2xl">
-          <LuxuryPerformanceChart userEmail={user.email!} targetScore={targetScore} />
+          <LuxuryPerformanceChart profile={profile} history={history} />
         </div>
 
         {/* Two Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
           {/* Score Insights */}
           <div className="bg-gradient-to-br from-purple-500/10 to-blue-500/10 backdrop-blur-xl rounded-2xl sm:rounded-3xl border border-white/10 p-4 sm:p-6 lg:p-8 shadow-2xl">
-            <ScoreInsights userEmail={user.email!} targetScore={targetScore} />
+            <ScoreInsights profile={profile} history={history} />
           </div>
 
           {/* Latest Session Feedback */}
           <div className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 backdrop-blur-xl rounded-2xl sm:rounded-3xl border border-white/10 p-4 sm:p-6 lg:p-8 shadow-2xl">
-            <AdvancedSessionFeedback userEmail={user.email!} />
+            <AdvancedSessionFeedback history={history} />
           </div>
         </div>
 

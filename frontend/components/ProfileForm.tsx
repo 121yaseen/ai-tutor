@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import { motion, AnimatePresence } from 'framer-motion'
-import type { User } from '@supabase/supabase-js'
 import { PhoneInput } from 'react-international-phone'
 import 'react-international-phone/style.css'
 import { getNames, getCode } from 'country-list'
+import { updateProfile } from '@/lib/actions'
+import type { Profile } from '@prisma/client'
 
 const countries = getNames().map((name: string) => ({
   name,
@@ -17,20 +17,25 @@ const countries = getNames().map((name: string) => ({
 const targetScores = [5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0];
 const previousScores = [4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0];
 
-export default function ProfileForm({ user, isOnboarding = false }: { user: User, isOnboarding?: boolean }) {
-  const supabase = createClient()
+export default function ProfileForm({
+  isOnboarding = false,
+  profile
+}: {
+  isOnboarding?: boolean,
+  profile: Profile | null
+}) {
   const router = useRouter()
 
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    phoneNumber: '',
-    previouslyAttempted: false,
-    previousBandScore: null as number | null,
-    examDate: '',
-    targetBandScore: null as number | null,
-    country: 'US',
-    nativeLanguage: '',
+    first_name: profile?.first_name || '',
+    last_name: profile?.last_name || '',
+    phone_number: profile?.phone_number || '',
+    previously_attempted_exam: profile?.previously_attempted_exam || false,
+    previous_band_score: profile?.previous_band_score || null,
+    exam_date: profile?.exam_date ? new Date(profile.exam_date).toISOString().split('T')[0] : '',
+    target_band_score: profile?.target_band_score || null,
+    country: profile?.country || 'US',
+    native_language: profile?.native_language || '',
   })
   
   const [isLoading, setIsLoading] = useState(false)
@@ -60,62 +65,36 @@ export default function ProfileForm({ user, isOnboarding = false }: { user: User
   useEffect(() => {
     // Re-validate the date whenever the user navigates to the final step
     if (currentStep === 2) {
-      validateExamDate(formData.examDate)
+      validateExamDate(formData.exam_date)
     }
-  }, [currentStep, formData.examDate])
-
-  useEffect(() => {
-    async function loadProfile() {
-      const { data } = await supabase.from('profiles').select('*').single()
-      if (data) {
-        setFormData({
-          firstName: data.first_name || '',
-          lastName: data.last_name || '',
-          phoneNumber: data.phone_number || '',
-          previouslyAttempted: data.previously_attempted_exam || false,
-          previousBandScore: data.previous_band_score,
-          examDate: data.exam_date || '',
-          targetBandScore: data.target_band_score,
-          country: data.country || 'US',
-          nativeLanguage: data.native_language || '',
-        })
-      }
-    }
-    loadProfile()
-  }, [supabase])
+  }, [currentStep, formData.exam_date])
 
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newDate = e.target.value
-    setFormData({ ...formData, examDate: newDate })
+    setFormData({ ...formData, exam_date: newDate })
     validateExamDate(newDate)
   }
 
   const submitProfile = async () => {
-    if (!validateExamDate(formData.examDate)) return
+    if (!validateExamDate(formData.exam_date)) return
 
     setIsLoading(true)
     setError(null)
     setSuccess(null)
 
     try {
-      const { error: upsertError } = await supabase.from('profiles').upsert({
-        id: user.id,
-        first_name: formData.firstName,
-        last_name: formData.lastName,
-        phone_number: formData.phoneNumber,
-        previously_attempted_exam: formData.previouslyAttempted,
-        previous_band_score: formData.previousBandScore,
-        exam_date: formData.examDate,
-        target_band_score: formData.targetBandScore,
-        country: formData.country,
-        native_language: formData.nativeLanguage,
-        onboarding_completed: true,
-        updated_at: new Date().toISOString(),
-      })
+      // Construct full_name from first_name and last_name
+      const fullName = [formData.first_name, formData.last_name]
+        .filter(name => name && name.trim())
+        .join(' ')
+        .trim()
 
-      if (upsertError) {
-        throw upsertError
-      }
+      await updateProfile({
+        ...formData,
+        full_name: fullName || undefined,
+        exam_date: formData.exam_date ? new Date(formData.exam_date) : null,
+        onboarding_completed: true,
+      })
       
       setSuccess('Profile saved successfully!')
       setTimeout(() => {
@@ -172,11 +151,11 @@ export default function ProfileForm({ user, isOnboarding = false }: { user: User
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-300">First Name</label>
-                <input type="text" value={formData.firstName} onChange={(e) => setFormData({...formData, firstName: e.target.value})} className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300 text-base" placeholder="Your first name" />
+                <input type="text" value={formData.first_name} onChange={(e) => setFormData({...formData, first_name: e.target.value})} className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300 text-base" placeholder="Your first name" />
               </div>
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-300">Last Name</label>
-                <input type="text" value={formData.lastName} onChange={(e) => setFormData({...formData, lastName: e.target.value})} className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300 text-base" placeholder="Your last name" />
+                <input type="text" value={formData.last_name} onChange={(e) => setFormData({...formData, last_name: e.target.value})} className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300 text-base" placeholder="Your last name" />
               </div>
             </div>
             <div className="space-y-2">
@@ -187,7 +166,7 @@ export default function ProfileForm({ user, isOnboarding = false }: { user: User
             </div>
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-300">Native Language</label>
-              <input type="text" value={formData.nativeLanguage} onChange={(e) => setFormData({...formData, nativeLanguage: e.target.value})} className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300 text-base" placeholder="e.g., Spanish" />
+              <input type="text" value={formData.native_language} onChange={(e) => setFormData({...formData, native_language: e.target.value})} className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300 text-base" placeholder="e.g., Spanish" />
             </div>
           </div>
         )
@@ -195,13 +174,13 @@ export default function ProfileForm({ user, isOnboarding = false }: { user: User
         return (
           <div className="space-y-4 sm:space-y-6">
             <div className="flex items-start sm:items-center p-4 sm:p-6 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl border border-blue-500/20">
-              <input type="checkbox" id="previouslyAttempted" checked={formData.previouslyAttempted} onChange={(e) => setFormData({...formData, previouslyAttempted: e.target.checked, previousBandScore: e.target.checked ? formData.previousBandScore : null})} className="w-5 h-5 mt-1 sm:mt-0 text-amber-600 bg-gray-800 border-gray-600 rounded focus:ring-amber-500 focus:ring-2" />
+              <input type="checkbox" id="previouslyAttempted" checked={formData.previously_attempted_exam} onChange={(e) => setFormData({...formData, previously_attempted_exam: e.target.checked, previous_band_score: e.target.checked ? formData.previous_band_score : null})} className="w-5 h-5 mt-1 sm:mt-0 text-amber-600 bg-gray-800 border-gray-600 rounded focus:ring-amber-500 focus:ring-2" />
               <label htmlFor="previouslyAttempted" className="ml-3 sm:ml-4 block text-base sm:text-lg text-white leading-relaxed">I have previously attempted the IELTS exam</label>
             </div>
-            {formData.previouslyAttempted && (
+            {formData.previously_attempted_exam && (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} transition={{ duration: 0.3 }} className="space-y-2">
                 <label className="block text-sm font-medium text-gray-300">Previous Band Score</label>
-                <select value={formData.previousBandScore || ''} onChange={(e) => setFormData({...formData, previousBandScore: parseFloat(e.target.value)})} className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300 text-base">
+                <select value={formData.previous_band_score || ''} onChange={(e) => setFormData({...formData, previous_band_score: parseFloat(e.target.value)})} className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300 text-base">
                   <option value="">Select your previous score</option>
                   {previousScores.map((score) => (<option key={score} value={score} className="bg-gray-800">{score}</option>))}
                 </select>
@@ -216,7 +195,7 @@ export default function ProfileForm({ user, isOnboarding = false }: { user: User
               <label className="block text-sm font-medium text-gray-300">Target Band Score</label>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-3">
                 {targetScores.map((score) => (
-                  <button key={score} type="button" onClick={() => setFormData({...formData, targetBandScore: score})} className={`py-3 sm:py-4 px-3 sm:px-4 rounded-xl border transition-all duration-300 text-sm sm:text-base font-medium ${formData.targetBandScore === score ? 'bg-gradient-to-r from-amber-500 to-orange-500 border-amber-400 text-white shadow-lg' : 'bg-gray-800/50 border-gray-600 text-gray-300 hover:border-amber-500/50'}`}>
+                  <button key={score} type="button" onClick={() => setFormData({...formData, target_band_score: score})} className={`py-3 sm:py-4 px-3 sm:px-4 rounded-xl border transition-all duration-300 text-sm sm:text-base font-medium ${formData.target_band_score === score ? 'bg-gradient-to-r from-amber-500 to-orange-500 border-amber-400 text-white shadow-lg' : 'bg-gray-800/50 border-gray-600 text-gray-300 hover:border-amber-500/50'}`}>
                     {score}
                   </button>
                 ))}
@@ -224,15 +203,15 @@ export default function ProfileForm({ user, isOnboarding = false }: { user: User
             </div>
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-300">Exam Date (Optional)</label>
-              <input type="date" value={formData.examDate} onChange={handleDateChange} min={todayString} className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300 text-base" />
+              <input type="date" value={formData.exam_date} onChange={handleDateChange} min={todayString} className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300 text-base" />
               {dateError && <p className="mt-2 text-sm text-red-400">{dateError}</p>}
             </div>
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-300">Phone Number</label>
               <PhoneInput
                 defaultCountry="us"
-                value={formData.phoneNumber}
-                onChange={(phone) => setFormData({...formData, phoneNumber: phone})}
+                value={formData.phone_number}
+                onChange={(phone) => setFormData({...formData, phone_number: phone})}
                 className="w-full"
               />
             </div>

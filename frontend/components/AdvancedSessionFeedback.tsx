@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { motion } from 'framer-motion'
+import { JsonValue } from '@prisma/client/runtime/library'
 
 interface TestResult {
   test_date: string
@@ -24,37 +24,25 @@ interface TestResult {
   }
 }
 
-export default function AdvancedSessionFeedback({ userEmail }: { userEmail: string }) {
+export default function AdvancedSessionFeedback({ history }: { history: JsonValue[] | null }) {
   const [latestSession, setLatestSession] = useState<TestResult | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    async function fetchLatestSession() {
-      try {
-        const supabase = createClient()
-        const { data, error } = await supabase
-          .from('students')
-          .select('history')
-          .eq('email', userEmail)
-          .single()
-
-        if (error || !data?.history || data.history.length === 0) {
-          setLoading(false)
-          return
-        }
-
-        const history: TestResult[] = data.history
-        const latest = history[history.length - 1]
-        setLatestSession(latest)
-      } catch (error) {
-        console.error('Error fetching latest session:', error)
-      } finally {
+    function getLatestSession() {
+      if (!history || history.length === 0) {
         setLoading(false)
+        return
       }
+
+      const testResults = history as unknown as TestResult[]
+      const latest = testResults[testResults.length - 1]
+      setLatestSession(latest)
+      setLoading(false)
     }
 
-    fetchLatestSession()
-  }, [userEmail])
+    getLatestSession()
+  }, [history])
 
   if (loading) {
     return (

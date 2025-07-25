@@ -1,8 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { motion } from 'framer-motion'
+import type { Profile } from '@prisma/client'
+import { JsonValue } from '@prisma/client/runtime/library'
 
 interface TestResult {
   band_score: number
@@ -29,58 +30,45 @@ interface ChartData {
   }
 }
 
-export default function LuxuryPerformanceChart({ 
-  userEmail, 
-  targetScore 
-}: { 
-  userEmail: string
-  targetScore: number 
+export default function LuxuryPerformanceChart({
+  profile,
+  history,
+}: {
+  profile: Profile | null
+  history: JsonValue[] | null
 }) {
   const [chartData, setChartData] = useState<ChartData[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedPoint, setSelectedPoint] = useState<number | null>(null)
 
   useEffect(() => {
-    async function fetchChartData() {
-      try {
-        const supabase = createClient()
-        const { data, error } = await supabase
-          .from('students')
-          .select('history')
-          .eq('email', userEmail)
-          .single()
-
-        if (error || !data?.history) {
-          setLoading(false)
-          return
-        }
-
-        const history: TestResult[] = data.history
-        
-        const processedData = history
-          .filter(test => test.band_score > 0)
-          .map(test => ({
-            date: test.test_date,
-            score: test.band_score,
-            testNumber: test.test_number,
-            formattedDate: new Date(test.test_date).toLocaleDateString('en-US', {
-              month: 'short',
-              day: 'numeric'
-            }),
-            detailedScores: test.detailed_scores
-          }))
-          .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-
-        setChartData(processedData)
-      } catch (error) {
-        console.error('Error fetching chart data:', error)
-      } finally {
+    function processChartData() {
+      if (!history || history.length === 0) {
         setLoading(false)
+        return
       }
+
+      const testResults = history as unknown as TestResult[]
+      const processedData = testResults
+        .filter(test => test.band_score > 0)
+        .map(test => ({
+          date: test.test_date,
+          score: test.band_score,
+          testNumber: test.test_number,
+          formattedDate: new Date(test.test_date).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric'
+          }),
+          detailedScores: test.detailed_scores
+        }))
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+
+      setChartData(processedData)
+      setLoading(false)
     }
 
-    fetchChartData()
-  }, [userEmail])
+    processChartData()
+  }, [history])
 
   if (loading) {
     return (
@@ -107,6 +95,8 @@ export default function LuxuryPerformanceChart({
       </div>
     )
   }
+
+  const targetScore = profile?.target_band_score || 7.5
 
   // Chart dimensions - responsive based on screen size
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 640
