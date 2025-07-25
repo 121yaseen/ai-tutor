@@ -1,8 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { motion } from 'framer-motion'
+import type { Profile } from '@prisma/client'
+import { JsonValue } from '@prisma/client/runtime/library'
 
 interface TestResult {
   band_score: number
@@ -26,92 +27,82 @@ interface InsightData {
   improvementRate: number
 }
 
-export default function ScoreInsights({ 
-  userEmail, 
-  targetScore 
-}: { 
-  userEmail: string
-  targetScore: number 
+export default function ScoreInsights({
+  profile,
+  history,
+}: {
+  profile: Profile | null
+  history: JsonValue[] | null
 }) {
   const [insights, setInsights] = useState<InsightData | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    async function generateInsights() {
-      try {
-        const supabase = createClient()
-        const { data, error } = await supabase
-          .from('students')
-          .select('history')
-          .eq('email', userEmail)
-          .single()
+    function generateInsights() {
+      const targetScore = profile?.target_band_score || 7.5
 
-        if (error || !data?.history || data.history.length === 0) {
-          setLoading(false)
-          return
-        }
-
-        const history: TestResult[] = data.history
-        const latestTest = history[history.length - 1]
-        const scores = history.map(test => test.band_score).filter(score => score > 0)
-
-        // Calculate insights
-        const currentScore = latestTest.band_score
-        const currentLevel = getBandLevel(currentScore)
-        const nextLevel = getBandLevel(Math.min(currentScore + 0.5, 9))
-        const pointsToTarget = Math.max(0, targetScore - currentScore)
-
-        // Find strongest and weakest skills
-        let strongestSkill = 'vocabulary'
-        let weakestSkill = 'grammar'
-        if (latestTest.detailed_scores) {
-          const skills = latestTest.detailed_scores
-          const maxScore = Math.max(skills.fluency, skills.vocabulary, skills.grammar, skills.pronunciation)
-          const minScore = Math.min(skills.fluency, skills.vocabulary, skills.grammar, skills.pronunciation)
-          
-          if (skills.fluency === maxScore) strongestSkill = 'fluency'
-          else if (skills.vocabulary === maxScore) strongestSkill = 'vocabulary'
-          else if (skills.grammar === maxScore) strongestSkill = 'grammar'
-          else if (skills.pronunciation === maxScore) strongestSkill = 'pronunciation'
-
-          if (skills.fluency === minScore) weakestSkill = 'fluency'
-          else if (skills.vocabulary === minScore) weakestSkill = 'vocabulary'
-          else if (skills.grammar === minScore) weakestSkill = 'grammar'
-          else if (skills.pronunciation === minScore) weakestSkill = 'pronunciation'
-        }
-
-        // Calculate consistency (lower variation = higher consistency)
-        const consistency = scores.length > 1 
-          ? Math.max(0, 100 - (Math.max(...scores) - Math.min(...scores)) * 20)
-          : 100
-
-        // Calculate improvement rate
-        const improvementRate = scores.length > 1
-          ? ((scores[scores.length - 1] - scores[0]) / scores.length) * 100
-          : 0
-
-        // Generate recommendation
-        const recommendation = generateRecommendation(pointsToTarget, weakestSkill, consistency)
-
-        setInsights({
-          currentLevel,
-          nextLevel,
-          pointsToTarget,
-          strongestSkill,
-          weakestSkill,
-          recommendation,
-          consistencyScore: Math.round(consistency),
-          improvementRate: Math.round(improvementRate * 10) / 10
-        })
-      } catch (error) {
-        console.error('Error generating insights:', error)
-      } finally {
+      if (!history || history.length === 0) {
         setLoading(false)
+        return
       }
+
+      const testResults = history as unknown as TestResult[]
+      const latestTest = testResults[testResults.length - 1]
+      const scores = testResults.map(test => test.band_score).filter(score => score > 0)
+
+      // Calculate insights
+      const currentScore = latestTest.band_score
+      const currentLevel = getBandLevel(currentScore)
+      const nextLevel = getBandLevel(Math.min(currentScore + 0.5, 9))
+      const pointsToTarget = Math.max(0, targetScore - currentScore)
+
+      // Find strongest and weakest skills
+      let strongestSkill = 'vocabulary'
+      let weakestSkill = 'grammar'
+      if (latestTest.detailed_scores) {
+        const skills = latestTest.detailed_scores
+        const maxScore = Math.max(skills.fluency, skills.vocabulary, skills.grammar, skills.pronunciation)
+        const minScore = Math.min(skills.fluency, skills.vocabulary, skills.grammar, skills.pronunciation)
+        
+        if (skills.fluency === maxScore) strongestSkill = 'fluency'
+        else if (skills.vocabulary === maxScore) strongestSkill = 'vocabulary'
+        else if (skills.grammar === maxScore) strongestSkill = 'grammar'
+        else if (skills.pronunciation === maxScore) strongestSkill = 'pronunciation'
+
+        if (skills.fluency === minScore) weakestSkill = 'fluency'
+        else if (skills.vocabulary === minScore) weakestSkill = 'vocabulary'
+        else if (skills.grammar === minScore) weakestSkill = 'grammar'
+        else if (skills.pronunciation === minScore) weakestSkill = 'pronunciation'
+      }
+
+      // Calculate consistency (lower variation = higher consistency)
+      const consistency = scores.length > 1 
+        ? Math.max(0, 100 - (Math.max(...scores) - Math.min(...scores)) * 20)
+        : 100
+
+      // Calculate improvement rate
+      const improvementRate = scores.length > 1
+        ? ((scores[scores.length - 1] - scores[0]) / scores.length) * 100
+        : 0
+
+      // Generate recommendation
+      const recommendation = generateRecommendation(pointsToTarget, weakestSkill, consistency)
+
+      setInsights({
+        currentLevel,
+        nextLevel,
+        pointsToTarget,
+        strongestSkill,
+        weakestSkill,
+        recommendation,
+        consistencyScore: Math.round(consistency),
+        improvementRate: Math.round(improvementRate * 10) / 10
+      })
+      setLoading(false)
     }
 
     generateInsights()
-  }, [userEmail, targetScore])
+  }, [history, profile])
 
   const getBandLevel = (score: number): string => {
     if (score >= 8.5) return 'Expert'
@@ -184,6 +175,8 @@ export default function ScoreInsights({
       color: 'from-green-500 to-emerald-600',
     },
   ]
+
+  const targetScore = profile?.target_band_score || 7.5;
 
   return (
     <div className="space-y-8">
