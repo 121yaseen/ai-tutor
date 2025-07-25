@@ -54,8 +54,11 @@ class ProfileDB:
             complete_profile = self.get_profile_by_email(email)
             if complete_profile:
                 profile_json = {
+                    "email": complete_profile["email"],
+                    "full_name": complete_profile["full_name"],
                     "first_name": complete_profile["first_name"],
                     "last_name": complete_profile["last_name"],
+                    "phone_number": complete_profile["phone_number"],
                     "preparing_for": complete_profile["preparing_for"],
                     "previously_attempted_exam": complete_profile["previously_attempted_exam"],
                     "previous_band_score": complete_profile["previous_band_score"],
@@ -63,6 +66,10 @@ class ProfileDB:
                     "target_band_score": complete_profile["target_band_score"],
                     "country": complete_profile["country"],
                     "native_language": complete_profile["native_language"],
+                    "onboarding_completed": complete_profile["onboarding_completed"],
+                    "onboarding_presented": complete_profile["onboarding_presented"],
+                    "created_at": str(complete_profile["created_at"]) if complete_profile["created_at"] else None,
+                    "updated_at": str(complete_profile["updated_at"]) if complete_profile["updated_at"] else None,
                 }
                 return json.dumps(profile_json)
             return None
