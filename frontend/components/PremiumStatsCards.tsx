@@ -1,8 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { motion } from 'framer-motion'
+import type { Profile } from '@prisma/client'
+import { JsonValue } from '@prisma/client/runtime/library'
 
 interface TestResult {
   band_score: number
@@ -25,11 +26,11 @@ interface StatsData {
 }
 
 export default function PremiumStatsCards({ 
-  userEmail, 
-  targetScore 
+  profile,
+  history
 }: { 
-  userEmail: string
-  targetScore: number 
+  profile: Profile | null,
+  history: JsonValue[] | null
 }) {
   const [stats, setStats] = useState<StatsData>({
     latestScore: 0,
@@ -42,67 +43,51 @@ export default function PremiumStatsCards({
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    async function fetchStats() {
-      try {
-        const supabase = createClient()
-        const { data, error } = await supabase
-          .from('students')
-          .select('history')
-          .eq('email', userEmail)
-          .single()
-
-        if (error || !data?.history) {
-          setLoading(false)
-          return
-        }
-
-        const history: TestResult[] = data.history
-        
-        if (history.length === 0) {
-          setLoading(false)
-          return
-        }
-
-        const scores = history.map(test => test.band_score).filter(score => score > 0)
-        
-        const latestScore = scores[scores.length - 1] || 0
-        const bestScore = Math.max(...scores)
-        const averageScore = scores.reduce((sum, score) => sum + score, 0) / scores.length
-        const totalTests = history.length
-
-        // Calculate improvement
-        const improvement = scores.length > 1 
-          ? ((latestScore - scores[0]) / scores[0]) * 100 
-          : 0
-
-        // Find weakest area from latest test
-        const latestTest = history[history.length - 1]
-        let weakestArea = 'grammar'
-        if (latestTest.detailed_scores) {
-          const areas = latestTest.detailed_scores
-          const minScore = Math.min(areas.fluency, areas.vocabulary, areas.grammar, areas.pronunciation)
-          if (areas.fluency === minScore) weakestArea = 'fluency'
-          else if (areas.vocabulary === minScore) weakestArea = 'vocabulary'
-          else if (areas.pronunciation === minScore) weakestArea = 'pronunciation'
-        }
-
-        setStats({
-          latestScore,
-          bestScore,
-          averageScore: Math.round(averageScore * 10) / 10,
-          totalTests,
-          improvement: Math.round(improvement * 10) / 10,
-          weakestArea
-        })
-      } catch (error) {
-        console.error('Error fetching stats:', error)
-      } finally {
+    function calculateStats() {
+      if (!history || history.length === 0) {
         setLoading(false)
+        return
       }
+
+      const testResults = history as unknown as TestResult[]
+      const scores = testResults.map(test => test.band_score).filter(score => score > 0)
+      
+      const latestScore = scores[scores.length - 1] || 0
+      const bestScore = Math.max(...scores)
+      const averageScore = scores.reduce((sum, score) => sum + score, 0) / scores.length
+      const totalTests = testResults.length
+
+      // Calculate improvement
+      const improvement = scores.length > 1 
+        ? ((latestScore - scores[0]) / scores[0]) * 100 
+        : 0
+
+      // Find weakest area from latest test
+      const latestTest = testResults[testResults.length - 1]
+      let weakestArea = 'grammar'
+      if (latestTest.detailed_scores) {
+        const areas = latestTest.detailed_scores
+        const minScore = Math.min(areas.fluency, areas.vocabulary, areas.grammar, areas.pronunciation)
+        if (areas.fluency === minScore) weakestArea = 'fluency'
+        else if (areas.vocabulary === minScore) weakestArea = 'vocabulary'
+        else if (areas.pronunciation === minScore) weakestArea = 'pronunciation'
+      }
+
+      setStats({
+        latestScore,
+        bestScore,
+        averageScore: Math.round(averageScore * 10) / 10,
+        totalTests,
+        improvement: Math.round(improvement * 10) / 10,
+        weakestArea
+      })
+      setLoading(false)
     }
 
-    fetchStats()
-  }, [userEmail])
+    calculateStats()
+  }, [history])
+
+  const targetScore = profile?.target_band_score || 7.5
 
   const statCards = [
     {

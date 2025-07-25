@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
-
+import { getProfile, updateProfile } from '@/lib/actions'
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
@@ -14,32 +14,28 @@ export async function GET(request: NextRequest) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code)
     
     if (!error && data?.user) {
-      // Check if user has a profile
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', data.user.id)
-        .single()
+      // Check if user has a profile using our server action
+      const profile = await getProfile()
       
-      // If no profile exists, create one with flags and redirect to onboarding
+      // If no profile exists, create one and redirect to onboarding
       if (!profile) {
-        await supabase.from('profiles').insert([
-          {
-            id: data.user.id,
-            full_name: data.user.user_metadata?.full_name || 
-                      data.user.user_metadata?.name || 
-                      data.user.email?.split('@')[0] || 
-                      'User',
-            updated_at: new Date().toISOString(),
-            onboarding_completed: false,
-            onboarding_presented: false,
-          }
-        ])
+        await updateProfile({
+          full_name: data.user.user_metadata?.full_name || 
+                     data.user.user_metadata?.name || 
+                     data.user.email?.split('@')[0] || 
+                     'User',
+          onboarding_completed: false,
+          onboarding_presented: true, // Set to true since user is being shown onboarding
+        })
         return NextResponse.redirect(`${origin}/onboarding`)
       }
 
       // For existing profiles, check if onboarding has been presented
       if (!profile.onboarding_presented) {
+        // Set onboarding_presented to true when user reaches onboarding page
+        await updateProfile({
+          onboarding_presented: true,
+        })
         return NextResponse.redirect(`${origin}/onboarding`)
       }
       

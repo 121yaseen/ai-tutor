@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Profile {
+  id                      String    @id
+  email                   String    @unique
+  full_name               String?
+  updated_at              DateTime? @updatedAt
+  first_name              String?
+  last_name               String?
+  phone_number            String?
+  preparing_for           String?   @default("IELTS")
+  previously_attempted_exam Boolean?
+  previous_band_score     Float?
+  exam_date               DateTime?
+  target_band_score       Float?
+  country                 String?   @default("India")
+  native_language         String?
+  onboarding_completed    Boolean?  @default(false)
+  onboarding_presented    Boolean   @default(false)
+  created_at              DateTime  @default(now())
+
+  @@map("profiles")
+}
+
+model Student {
+  email   String  @id
+  name    String?
+  history Json?   @default("[]")
+
+  @@map("students")
+}
+
+model Feedback {
+  id            String       @id @default(uuid())
+  user_email    String
+  session_id    String?
+  feedback_type FeedbackType
+  rating        Int?
+  title         String
+  comments      String
+  metadata      Json?        @default("{}")
+  created_at    DateTime     @default(now())
+  updated_at    DateTime     @updatedAt
+
+  @@map("feedback")
+}
+
+enum FeedbackType {
+  general
+  feature_request
+  bug_report
+  ui_feedback
+  content_feedback
+}

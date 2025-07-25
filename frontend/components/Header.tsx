@@ -5,6 +5,8 @@ import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { User } from '@supabase/supabase-js'
+import { getProfile } from '@/lib/actions'
+import type { Profile } from '@prisma/client'
 
 const navigationItems = [
   { name: 'Practice', href: '/', icon: '🎯' },
@@ -14,7 +16,7 @@ const navigationItems = [
 
 export default function Header() {
   const [user, setUser] = useState<User | null>(null)
-  const [profile, setProfile] = useState<{first_name?: string, last_name?: string, full_name?: string} | null>(null)
+  const [profile, setProfile] = useState<Profile | null>(null)
   const [isScrolled, setIsScrolled] = useState(false)
   const [activeItem, setActiveItem] = useState('')
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -28,12 +30,8 @@ export default function Header() {
       setUser(user)
       
       if (user) {
-        // Get user profile for name display
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('first_name, last_name, full_name')
-          .eq('id', user.id)
-          .single()
+        // Get user profile using server action
+        const profileData = await getProfile()
         setProfile(profileData)
       }
     }
@@ -44,7 +42,7 @@ export default function Header() {
     }
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [supabase])
+  }, [])
 
   useEffect(() => {
     const currentItem = navigationItems.find(item => item.href === pathname)
@@ -139,9 +137,10 @@ export default function Header() {
             >
               <div className="text-right flex flex-col justify-center">
                 <p className="text-sm font-medium text-white leading-tight">
-                  {profile?.first_name && profile?.last_name 
-                    ? `${profile.first_name} ${profile.last_name}`
-                    : profile?.full_name || user.email?.split('@')[0]
+                  {profile?.full_name || 
+                   (profile?.first_name && profile?.last_name 
+                     ? `${profile.first_name} ${profile.last_name}`
+                     : user.email?.split('@')[0])
                   }
                 </p>
                 <p className="text-xs text-gray-400 leading-tight">Premium Member</p>
@@ -208,9 +207,10 @@ export default function Header() {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-white">
-                    {profile?.first_name && profile?.last_name 
-                      ? `${profile.first_name} ${profile.last_name}`
-                      : profile?.full_name || user.email?.split('@')[0]
+                    {profile?.full_name || 
+                     (profile?.first_name && profile?.last_name 
+                       ? `${profile.first_name} ${profile.last_name}`
+                       : user.email?.split('@')[0])
                     }
                   </p>
                   <p className="text-xs text-gray-400">Premium Member</p>
