@@ -8,8 +8,47 @@ proper separation of concerns, comprehensive error handling, and scalable archit
 import asyncio
 import json
 import sys
+import logging
+import os
 from typing import Optional
 from dotenv import load_dotenv
+
+# Configure logging before importing other modules
+def configure_logging():
+    """Configure logging to reduce verbose output from websockets and LiveKit."""
+    # Set environment variables for logging control
+    os.environ.setdefault('LOG_LEVEL', 'WARNING')
+    os.environ.setdefault('WEBSOCKETS_LOG_LEVEL', 'WARNING')
+    os.environ.setdefault('LIVEKIT_LOG_LEVEL', 'WARNING')
+    
+    # Configure root logger
+    logging.basicConfig(
+        level=logging.WARNING,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+    
+    # Specifically reduce websockets logging
+    websockets_logger = logging.getLogger('websockets')
+    websockets_logger.setLevel(logging.WARNING)
+    
+    # Reduce LiveKit logging
+    livekit_logger = logging.getLogger('livekit')
+    livekit_logger.setLevel(logging.WARNING)
+    
+    # Reduce Google AI logging
+    google_logger = logging.getLogger('google')
+    google_logger.setLevel(logging.WARNING)
+    
+    # Reduce aiohttp logging
+    aiohttp_logger = logging.getLogger('aiohttp')
+    aiohttp_logger.setLevel(logging.WARNING)
+    
+    # Keep your application logs at INFO level
+    app_logger = logging.getLogger('src')
+    app_logger.setLevel(logging.INFO)
+
+# Configure logging first
+configure_logging()
 
 from livekit import agents
 from livekit.agents import AgentSession, Agent, RoomInputOptions
@@ -266,7 +305,9 @@ class SessionManager:
                 f"Questions selected for {user_email}",
                 extra={"extra_fields": {
                     "difficulty": difficulty.value,
-                    "latest_score": latest_score
+                    "latest_score": latest_score,
+                    "part1_follow_ups_count": len(question_set.part1_follow_ups),
+                    "part3_follow_ups_count": len(question_set.part3_follow_ups)
                 }}
             )
             
@@ -281,9 +322,27 @@ class SessionManager:
             
             # Return fallback intermediate questions
             fallback_questions = {
-                "part1": "Tell me about your hometown.",
-                "part2": "Describe a person who has influenced you. You should say: who this person is, how you know them, what they are like, and explain how they have influenced you.",
-                "part3": "How do you think technology has changed the way people communicate?"
+                "part1": {
+                    "main_question": "Tell me about your hometown.",
+                    "follow_up_questions": [
+                        "What's the most interesting thing about your hometown?",
+                        "How has your hometown changed since you were a child?",
+                        "What do you like most about living there?",
+                        "Would you like to live there in the future?"
+                    ]
+                },
+                "part2": {
+                    "topic": "Describe a person who has influenced you. You should say: who this person is, how you know them, what they are like, and explain how they have influenced you."
+                },
+                "part3": {
+                    "main_question": "How do you think technology has changed the way people communicate?",
+                    "follow_up_questions": [
+                        "What are the positive and negative effects of social media?",
+                        "Do you think people are more or less social today?",
+                        "How has technology changed the way people communicate?",
+                        "What impact do you think this will have on future generations?"
+                    ]
+                }
             }
             
             return fallback_questions
@@ -343,28 +402,85 @@ class SessionManager:
         print("--------------------------------------------------------------")
         instructions = f"""{user_data_instructions}
 
-Your instructions for this session are based on the data above.
+## PROFESSIONAL IELTS EXAMINATION SESSION
 
-## IMMEDIATE ACTIONS:
-1.  **GREET THE USER**: Use their name from the user data. If not available, a generic greeting is fine.
-2.  **CONDUCT THE TEST**: You must use the specific questions assigned to you for this session.
-3.  **SAVE THE RESULT**: After the test, call the `save_test_result_to_json` function with the user's email: `{user_email}`.
-4.  **DELIVER FEEDBACK**: Provide clear, constructive feedback.
+You are now conducting a **real IELTS Speaking test** for a candidate whose future academic or immigration plans may depend on this assessment. This is a high-stakes examination that requires your utmost professionalism, accuracy, and fairness.
 
-## SESSION GUIDELINES:
-- Follow the 3-part IELTS speaking test structure strictly
-- Maintain professional but friendly demeanor
-- Provide encouragement and support throughout
-- Focus on accurate assessment using official IELTS criteria
-- Ensure all parts are completed within appropriate time limits
+### **CANDIDATE CONTEXT:**
+The user data above provides important context about this candidate's:
+- Previous test performance and progression
+- Current skill level and learning trajectory
+- Areas of strength and improvement
+- Personal background and experience
 
-Begin the test now by greeting the user and starting with Part 1."""
+### **YOUR ROLE AS SENIOR EXAMINER:**
+You are **Pistah**, a senior IELTS Speaking Examiner with extensive experience. You must:
+
+1. **Create a Comfortable Environment:**
+   - Greet the candidate warmly but professionally
+   - Introduce yourself clearly: "Good [morning/afternoon]. I'm Pistah, and I'll be conducting your IELTS Speaking test today."
+   - Explain the test structure briefly: "The test has three parts and will take about 10-15 minutes."
+
+2. **Conduct a Professional Examination:**
+   - Follow the exact IELTS test structure and timing
+   - Use the specific questions assigned for this session
+   - Maintain natural conversation flow while ensuring proper assessment
+   - Listen attentively and show genuine interest in responses
+
+3. **Provide Accurate Assessment:**
+   - Evaluate all four IELTS criteria objectively
+   - Use specific examples from the candidate's performance
+   - Provide detailed, constructive feedback
+   - Save results using: `save_test_result_to_json("{user_email}", test_result)`
+
+### **EXAMINATION PROTOCOL:**
+
+**Part 1 (4-5 minutes):** Introduction and familiar topics
+- Start with the assigned question
+- Use natural follow-up questions to extend the conversation
+- Assess basic fluency, pronunciation, and grammatical accuracy
+
+**Part 2 (3-4 minutes):** Individual long turn
+- Present the topic card clearly
+- Give 1 minute preparation time
+- Allow 1-2 minutes for speaking
+- Assess extended speaking ability and coherence
+
+**Part 3 (4-5 minutes):** Two-way discussion
+- Ask the assigned question
+- Use follow-up questions to explore deeper
+- Assess abstract thinking and complex language use
+
+### **PROFESSIONAL STANDARDS:**
+- **NEVER** reveal scores during the test
+- **NEVER** ask for personal information
+- **ALWAYS** maintain professional examiner-candidate relationship
+- **ALWAYS** use encouraging, supportive language
+- **MUST** complete all three parts before assessment
+- **MUST** provide specific, detailed feedback with examples
+
+### **POST-TEST PROCEDURES:**
+1. Thank the candidate professionally
+2. Create comprehensive test result with detailed scoring
+3. Save results using the provided function
+4. Deliver constructive feedback with specific examples
+5. Provide encouragement and clear improvement suggestions
+
+### **QUALITY ASSURANCE:**
+Remember that this test could significantly impact someone's future. Maintain:
+- **Fairness:** Objective assessment regardless of background
+- **Accuracy:** Precise evaluation of all four criteria
+- **Professionalism:** Highest standards of examiner conduct
+- **Support:** Encouraging environment while maintaining rigor
+
+**Begin your examination now by greeting the candidate professionally and starting with Part 1.**"""
         
         self.logger.debug(
             f"Initial instructions generated for: {user_email}",
             extra={"extra_fields": {
                 "instruction_length": len(instructions),
-                "includes_user_data": "USER DATA" in instructions
+                "includes_user_data": "USER DATA" in instructions,
+                "professional_standards": "PROFESSIONAL STANDARDS" in instructions
             }}
         )
         

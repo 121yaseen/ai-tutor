@@ -21,7 +21,7 @@ from src.tools.agent_tools_new import (
     get_current_session_id
 )
 from src.models.student import StudentProfile
-from src.core.exceptions import validation_error, BusinessLogicException
+from src.core.exceptions import validation_error, BusinessLogicException, ErrorCode
 
 
 @pytest.mark.unit
@@ -106,7 +106,7 @@ class TestAgentToolsNew:
         mock_service = Mock()
         mock_service.save_test_result.side_effect = BusinessLogicException(
             "Service error",
-            error_code="TEST_ERROR"
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR
         )
         
         with patch('src.tools.agent_tools_new.get_student_service', return_value=mock_service):
