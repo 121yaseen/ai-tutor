@@ -1,26 +1,66 @@
 {
     "fluency_coherence": {
-        "9": "Speaks fluently with only rare repetition or self-correction. Develops topics coherently and appropriately.",
-        "7": "Speaks at length without noticeable effort. May occasionally repeat, self-correct or hesitate. Uses connectives appropriately.",
-        "5": "Usually maintains flow of speech but uses repetition, self-correction and/or slow speech. Over-uses certain connectives and discourse markers.",
-        "3": "Speaks with long pauses. Limited ability to link simple sentences. Frequent repetition and self-correction."
+        "9": "Speaks fluently with only rare repetition or self-correction. Develops topics coherently and appropriately. Uses a full range of cohesive devices and discourse markers naturally. Speaks at length without any loss of coherence. Rarely uses repetition or self-correction.",
+        "8": "Speaks fluently with only occasional repetition or self-correction. Develops topics coherently and appropriately. Uses a wide range of cohesive devices and discourse markers. Speaks at length with only occasional loss of coherence.",
+        "7": "Speaks at length without noticeable effort. May occasionally repeat, self-correct or hesitate. Uses connectives and discourse markers appropriately. Generally maintains flow of speech, though may lose coherence at times due to occasional repetition, self-correction or hesitation.",
+        "6": "Is willing to speak at length, though may lose coherence at times due to occasional repetition, self-correction or hesitation. Uses a range of connectives and discourse markers but not always appropriately.",
+        "5": "Usually maintains flow of speech but uses repetition, self-correction and/or slow speech to keep going. May over-use certain connectives and discourse markers. Produces simple speech fluently, but more complex communication causes fluency problems.",
+        "4": "Cannot respond without noticeable pauses and may speak slowly, with frequent repetition and self-correction. Links basic sentences but with repetitious use of simple connectives and some breakdowns in coherence.",
+        "3": "Speaks with long pauses. Limited ability to link simple sentences. Frequent repetition and self-correction. Has difficulty maintaining simple communication.",
+        "2": "Pauses lengthily before most words. Little communication possible.",
+        "1": "No communication possible. No rateable language.",
+        "0": "Does not attend."
     },
     "lexical_resource": {
-        "9": "Uses vocabulary with full flexibility and precise usage. Uses idiomatic language naturally and accurately.",
-        "7": "Uses vocabulary resource flexibly to discuss topics at length. Uses some less common and idiomatic items with awareness of style and collocation.",
-        "5": "Manages to talk about familiar and unfamiliar topics but uses vocabulary with limited flexibility. Attempts paraphrase but not always successfully.",
-        "3": "Uses simple vocabulary to convey personal information. Has insufficient vocabulary for less familiar topics."
+        "9": "Uses vocabulary with full flexibility and precise usage. Uses idiomatic language naturally and accurately. Uses a wide range of vocabulary with precision and subtlety. Rarely uses inappropriate vocabulary.",
+        "8": "Uses a wide range of vocabulary flexibly and accurately. Uses less common and idiomatic items with awareness of style and collocation. Occasional inaccuracies in word choice and collocation.",
+        "7": "Uses vocabulary resource flexibly to discuss topics at length. Uses some less common and idiomatic items with awareness of style and collocation. May occasionally use inappropriate vocabulary.",
+        "6": "Has enough vocabulary to discuss topics at length and make meaning clear in spite of inappropriateness. Generally paraphrases successfully. Uses a mix of simple and complex vocabulary but may lack precision.",
+        "5": "Manages to talk about familiar and unfamiliar topics but uses vocabulary with limited flexibility. Attempts paraphrase but not always successfully. Uses a range of vocabulary for most topics but may lack precision.",
+        "4": "Uses basic vocabulary to convey personal information. Has insufficient vocabulary for less familiar topics. Makes frequent errors in word choice and collocation.",
+        "3": "Uses simple vocabulary to convey personal information. Has insufficient vocabulary for less familiar topics. Makes frequent errors in word choice.",
+        "2": "Uses only isolated words or memorized utterances. Cannot convey basic message except through isolated words or short memorized utterances.",
+        "1": "Essentially no vocabulary available to convey message.",
+        "0": "Does not attend."
     },
     "grammatical_accuracy": {
-        "9": "Uses a wide range of structures with full flexibility and accuracy. Rare minor errors occur only as 'slips'.",
-        "7": "Uses a range of complex structures with some flexibility. May make frequent mistakes with complex structures, though these rarely cause comprehension problems.",
-        "5": "Uses basic sentence forms with reasonable accuracy. Uses limited range of more complex structures, but these usually contain errors.",
-        "3": "Attempts basic sentence forms but with limited success, or relies on apparently memorized utterances. Makes numerous errors except in memorized expressions."
+        "9": "Uses a wide range of structures with full flexibility and accuracy. Rare minor errors occur only as 'slips'. Uses a full range of structures naturally and appropriately. Rarely makes grammatical errors.",
+        "8": "Uses a wide range of structures with flexibility and accuracy. Occasional minor errors occur. Uses a range of complex structures with some flexibility. May make occasional errors with complex structures.",
+        "7": "Uses a range of complex structures with some flexibility. May make frequent mistakes with complex structures, though these rarely cause comprehension problems. Uses a mix of simple and complex sentence forms with some flexibility.",
+        "6": "Uses a mix of simple and complex structures, but with limited flexibility. May make frequent mistakes with complex structures, though these rarely cause comprehension problems. Uses basic sentence forms with reasonable accuracy.",
+        "5": "Uses basic sentence forms with reasonable accuracy. Uses limited range of more complex structures, but these usually contain errors. May make frequent mistakes with complex structures.",
+        "4": "Uses basic sentence forms with some accuracy. Uses limited range of more complex structures, but these usually contain errors. May make frequent mistakes with complex structures.",
+        "3": "Attempts basic sentence forms but with limited success, or relies on apparently memorized utterances. Makes numerous errors except in memorized expressions. Uses basic sentence forms with limited accuracy.",
+        "2": "Cannot produce basic sentence forms. Cannot produce basic sentence forms except in memorized expressions.",
+        "1": "Cannot produce basic sentence forms. Cannot produce basic sentence forms.",
+        "0": "Does not attend."
     },
     "pronunciation": {
-        "9": "Uses wide range of pronunciation features. Sustained flexible use of features with only occasional lapses. Easy to understand.",
-        "7": "Shows all positive features of Band 6 and some, but not all, positive features of Band 8. Generally easy to understand, with occasional mispronunciation.",
-        "5": "Shows positive features of Band 4 and some features of Band 6. Generally intelligible throughout, though mispronunciation reduces clarity at times.",
-        "3": "Shows some of the positive features of Band 2 and some features of Band 4. Frequently intelligible, though mispronunciation and inappropriate intonation sometimes impede understanding."
+        "9": "Uses wide range of pronunciation features. Sustained flexible use of features with only occasional lapses. Easy to understand throughout. L1 accent has minimal effect on intelligibility. Uses a full range of pronunciation features with precision and subtlety.",
+        "8": "Shows all positive features of Band 6 and some, but not all, positive features of Band 9. Generally easy to understand, with occasional mispronunciation. L1 accent has minimal effect on intelligibility.",
+        "7": "Shows all positive features of Band 6 and some, but not all, positive features of Band 8. Generally easy to understand, with occasional mispronunciation. L1 accent has minimal effect on intelligibility.",
+        "6": "Shows all positive features of Band 4 and some features of Band 6. Generally intelligible throughout, though mispronunciation reduces clarity at times. L1 accent has minimal effect on intelligibility.",
+        "5": "Shows positive features of Band 4 and some features of Band 6. Generally intelligible throughout, though mispronunciation reduces clarity at times. L1 accent may have some effect on intelligibility.",
+        "4": "Shows some of the positive features of Band 2 and some features of Band 4. Frequently intelligible, though mispronunciation and inappropriate intonation sometimes impede understanding. L1 accent may have some effect on intelligibility.",
+        "3": "Shows some of the positive features of Band 2 and some features of Band 4. Frequently intelligible, though mispronunciation and inappropriate intonation sometimes impede understanding. L1 accent may have some effect on intelligibility.",
+        "2": "Shows some of the positive features of Band 1 and some features of Band 3. May be intelligible to a sympathetic listener. L1 accent may have some effect on intelligibility.",
+        "1": "Shows some of the positive features of Band 1. May be intelligible to a sympathetic listener. L1 accent may have some effect on intelligibility.",
+        "0": "Does not attend."
+    },
+    "assessment_guidelines": {
+        "overall_band_calculation": "The overall band score is calculated by averaging the four individual scores (Fluency & Coherence, Lexical Resource, Grammatical Range & Accuracy, Pronunciation). If the average ends in .25, it is rounded up to the next half band, and if it ends in .75, it is rounded up to the next whole band.",
+        "band_score_examples": {
+            "9": "Expert user - Has fully operational command of the language",
+            "8": "Very good user - Has fully operational command with only occasional unsystematic inaccuracies",
+            "7": "Good user - Has operational command, though with occasional inaccuracies",
+            "6": "Competent user - Has generally effective command despite some inaccuracies",
+            "5": "Modest user - Has partial command, coping with overall meaning",
+            "4": "Limited user - Basic competence is limited to familiar situations",
+            "3": "Extremely limited user - Conveys and understands only general meaning",
+            "2": "Intermittent user - No real communication possible",
+            "1": "Non-user - Essentially no ability to use the language",
+            "0": "Did not attempt the test"
+        },
+        "examiner_notes": "When assessing candidates, consider the following: 1) Listen for specific examples of language use rather than making general impressions, 2) Consider the candidate's ability to communicate effectively rather than just grammatical accuracy, 3) Take into account the natural flow of conversation and the candidate's comfort level, 4) Provide specific feedback with examples from the candidate's actual performance, 5) Remember that this is a high-stakes examination that may impact the candidate's future opportunities."
     }
 }

@@ -28,17 +28,27 @@ logger = get_logger(__name__)
 class QuestionSet:
     """Represents a set of questions for a complete IELTS test."""
     
-    part1: str
-    part2: str
-    part3: str
+    part1_main: str
+    part1_follow_ups: List[str]
+    part2_topic: str
+    part3_main: str
+    part3_follow_ups: List[str]
     difficulty: DifficultyLevel
     
-    def to_dict(self) -> Dict[str, str]:
+    def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary format expected by agent."""
         return {
-            "part1": self.part1,
-            "part2": self.part2,
-            "part3": self.part3
+            "part1": {
+                "main_question": self.part1_main,
+                "follow_up_questions": self.part1_follow_ups
+            },
+            "part2": {
+                "topic": self.part2_topic
+            },
+            "part3": {
+                "main_question": self.part3_main,
+                "follow_up_questions": self.part3_follow_ups
+            }
         }
 
 
@@ -160,6 +170,35 @@ class QuestionService:
                 questions_list = part_data[difficulty]
                 if not isinstance(questions_list, list) or not questions_list:
                     raise validation_error(f"Part {part}, difficulty {difficulty} must be a non-empty list")
+                
+                # Validate question structure based on part
+                for i, question_item in enumerate(questions_list):
+                    if not isinstance(question_item, dict):
+                        raise validation_error(f"Question item {i} in {part}, {difficulty} must be a dictionary")
+                    
+                    if part == "part1":
+                        if "main_question" not in question_item:
+                            raise validation_error(f"Part 1 question {i} missing 'main_question'")
+                        if "follow_up_questions" not in question_item:
+                            raise validation_error(f"Part 1 question {i} missing 'follow_up_questions'")
+                        if not isinstance(question_item["follow_up_questions"], list):
+                            raise validation_error(f"Part 1 question {i} 'follow_up_questions' must be a list")
+                    
+                    elif part == "part2":
+                        if "topic" not in question_item:
+                            raise validation_error(f"Part 2 question {i} missing 'topic'")
+                        if "linked_part3_questions" not in question_item:
+                            raise validation_error(f"Part 2 question {i} missing 'linked_part3_questions'")
+                        if not isinstance(question_item["linked_part3_questions"], list):
+                            raise validation_error(f"Part 2 question {i} 'linked_part3_questions' must be a list")
+                    
+                    elif part == "part3":
+                        if "main_question" not in question_item:
+                            raise validation_error(f"Part 3 question {i} missing 'main_question'")
+                        if "follow_up_questions" not in question_item:
+                            raise validation_error(f"Part 3 question {i} missing 'follow_up_questions'")
+                        if not isinstance(question_item["follow_up_questions"], list):
+                            raise validation_error(f"Part 3 question {i} 'follow_up_questions' must be a list")
     
     def _validate_scoring_criteria_structure(self, criteria: Dict[str, Any]) -> None:
         """Validate the structure of scoring criteria data."""
@@ -270,15 +309,29 @@ class QuestionService:
                 part2_questions = questions_data["part2"][difficulty_key]
                 part3_questions = questions_data["part3"][difficulty_key]
             
-            # Select random questions
-            selected_part1 = random.choice(part1_questions)
-            selected_part2 = random.choice(part2_questions)
-            selected_part3 = random.choice(part3_questions)
             
+            # Select random Part 1 question set
+            selected_part1_set = random.choice(part1_questions)
+            part1_main = selected_part1_set["main_question"]
+            part1_follow_ups = selected_part1_set["follow_up_questions"]
+            
+            # Select random Part 2 topic
+            selected_part2_set = random.choice(part2_questions)
+            part2_topic = selected_part2_set["topic"]
+            linked_part3_questions = selected_part2_set["linked_part3_questions"]
+            
+            # Select random Part 3 question set (independent of Part 2 for variety)
+            selected_part3_set = random.choice(part3_questions)
+            part3_main = selected_part3_set["main_question"]
+            part3_follow_ups = selected_part3_set["follow_up_questions"]
+            
+            # Create question set with linked topics
             question_set = QuestionSet(
-                part1=selected_part1,
-                part2=selected_part2,
-                part3=selected_part3,
+                part1_main=part1_main,
+                part1_follow_ups=part1_follow_ups,
+                part2_topic=part2_topic,
+                part3_main=part3_main,
+                part3_follow_ups=part3_follow_ups,
                 difficulty=difficulty
             )
             
@@ -286,9 +339,12 @@ class QuestionService:
                 f"Selected questions for difficulty '{difficulty_key}'",
                 extra={"extra_fields": {
                     "difficulty": difficulty_key,
-                    "part1_question": selected_part1[:50] + "..." if len(selected_part1) > 50 else selected_part1,
-                    "part2_topic": selected_part2[:50] + "..." if len(selected_part2) > 50 else selected_part2,
-                    "part3_question": selected_part3[:50] + "..." if len(selected_part3) > 50 else selected_part3
+                    "part1_main": part1_main[:50] + "..." if len(part1_main) > 50 else part1_main,
+                    "part1_follow_ups_count": len(part1_follow_ups),
+                    "part2_topic": part2_topic[:50] + "..." if len(part2_topic) > 50 else part2_topic,
+                    "part3_main": part3_main[:50] + "..." if len(part3_main) > 50 else part3_main,
+                    "part3_follow_ups_count": len(part3_follow_ups),
+                    "linked_part3_questions_count": len(linked_part3_questions)
                 }}
             )
             
