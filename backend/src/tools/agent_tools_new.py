@@ -13,7 +13,8 @@ from ..core.logging import get_logger, set_request_context, generate_request_id
 from ..core.exceptions import (
     validation_error,
     BusinessLogicException,
-    IELTSExaminerException
+    IELTSExaminerException,
+    ValidationException
 )
 from ..models.student import TestResult
 
@@ -135,7 +136,7 @@ async def save_test_result_to_json(email: str, test_result: Dict[str, Any]) -> s
         
         return success_message
         
-    except (validation_error, BusinessLogicException) as e:
+    except (ValidationException, BusinessLogicException) as e:
         # Log application-specific errors
         logger.warning(
             f"Test result save failed: {e}",
@@ -225,7 +226,7 @@ async def create_new_student_record(email: str, name: str) -> str:
         
         return message
         
-    except (validation_error, IELTSExaminerException) as e:
+    except (ValidationException, IELTSExaminerException) as e:
         # Log application-specific errors
         logger.warning(
             f"Create student failed: {e}",
@@ -302,7 +303,7 @@ async def get_student_performance_analytics(email: str) -> str:
         import json
         return json.dumps(analytics, default=str, indent=2)
         
-    except (validation_error, IELTSExaminerException) as e:
+    except (ValidationException, IELTSExaminerException) as e:
         # Log application-specific errors
         logger.warning(
             f"Get analytics failed: {e}",

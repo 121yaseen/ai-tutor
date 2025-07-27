@@ -1,63 +1,404 @@
 {
     "part1": {
         "basic": [
-            "Do you work or study?",
-            "What do you like to do in your free time?",
-            "What kind of music do you like?",
-            "Do you prefer to stay at home or go out in the evening?",
-            "where are you from?",
-            "Tell me about your hometown."
+            {
+                "main_question": "Do you work or study?",
+                "follow_up_questions": [
+                    "What do you do exactly?",
+                    "How long have you been doing that?",
+                    "What do you like most about your work/studies?",
+                    "What are the main challenges you face?"
+                ]
+            },
+            {
+                "main_question": "What do you like to do in your free time?",
+                "follow_up_questions": [
+                    "How often do you do these activities?",
+                    "When did you first become interested in this?",
+                    "Do you prefer to do these activities alone or with others?",
+                    "How has your free time changed over the years?"
+                ]
+            },
+            {
+                "main_question": "Tell me about your hometown.",
+                "follow_up_questions": [
+                    "What's the most interesting thing about your hometown?",
+                    "How has your hometown changed since you were a child?",
+                    "What do you like most about living there?",
+                    "Would you like to live there in the future?"
+                ]
+            },
+            {
+                "main_question": "What kind of music do you like?",
+                "follow_up_questions": [
+                    "When did you first become interested in this type of music?",
+                    "Do you play any musical instruments?",
+                    "How important is music in your life?",
+                    "Do you think people's taste in music changes as they get older?"
+                ]
+            },
+            {
+                "main_question": "Do you prefer to stay at home or go out in the evening?",
+                "follow_up_questions": [
+                    "What do you usually do when you stay at home?",
+                    "What kind of places do you like to go to?",
+                    "How often do you go out?",
+                    "Do you think this preference has changed over time?"
+                ]
+            }
         ],
         "intermediate": [
-            "How has your hometown changed in recent years?",
-            "What are the advantages and disadvantages of your job/studies?",
-            "How do you think technology has changed the way people spend their free time?",
-            "What role does music play in your culture?",
-            "How do you think people's social habits have changed over the years?"
+            {
+                "main_question": "How has your hometown changed in recent years?",
+                "follow_up_questions": [
+                    "What do you think caused these changes?",
+                    "Do you think these changes are positive or negative?",
+                    "How do you think it will change in the future?",
+                    "What would you like to see improved in your hometown?"
+                ]
+            },
+            {
+                "main_question": "What are the advantages and disadvantages of your job/studies?",
+                "follow_up_questions": [
+                    "Which aspect do you find most challenging?",
+                    "How do you think this experience will help you in the future?",
+                    "What skills have you developed through this work/study?",
+                    "Would you recommend this path to others?"
+                ]
+            },
+            {
+                "main_question": "How do you think technology has changed the way people spend their free time?",
+                "follow_up_questions": [
+                    "What technology do you use most in your free time?",
+                    "Do you think these changes are good or bad?",
+                    "How has your own free time changed due to technology?",
+                    "What activities do you think people did more before technology?"
+                ]
+            },
+            {
+                "main_question": "What role does music play in your culture?",
+                "follow_up_questions": [
+                    "Are there any traditional musical instruments in your culture?",
+                    "How do people in your culture typically experience music?",
+                    "Do you think music helps preserve cultural traditions?",
+                    "How has music in your culture evolved over time?"
+                ]
+            },
+            {
+                "main_question": "How do you think people's social habits have changed over the years?",
+                "follow_up_questions": [
+                    "What do you think has caused these changes?",
+                    "How have your own social habits changed?",
+                    "Do you think these changes are positive or negative?",
+                    "What social activities do you think people did more in the past?"
+                ]
+            }
         ],
         "advanced": [
-            "In what ways do you think your hometown could be improved?",
-            "How do you think the job market will change in the future?",
-            "Do you think people today have more or less free time than in the past? Why?",
-            "How important is preserving traditional music in your country?",
-            "What impact do you think social media has had on genuine human connections?"
+            {
+                "main_question": "In what ways do you think your hometown could be improved?",
+                "follow_up_questions": [
+                    "Who do you think should be responsible for making these improvements?",
+                    "How would these improvements benefit the community?",
+                    "What challenges might there be in implementing these changes?",
+                    "How do you think your hometown compares to other cities?"
+                ]
+            },
+            {
+                "main_question": "How do you think the job market will change in the future?",
+                "follow_up_questions": [
+                    "What skills do you think will be most valuable in the future?",
+                    "How should people prepare for these changes?",
+                    "What role do you think technology will play in future jobs?",
+                    "Do you think these changes will be positive or negative?"
+                ]
+            },
+            {
+                "main_question": "Do you think people today have more or less free time than in the past? Why?",
+                "follow_up_questions": [
+                    "How has the nature of work changed over time?",
+                    "What do you think has caused these changes in free time?",
+                    "How do you think people should balance work and leisure?",
+                    "What impact do you think this has on people's quality of life?"
+                ]
+            },
+            {
+                "main_question": "How important is preserving traditional music in your country?",
+                "follow_up_questions": [
+                    "What traditional music forms exist in your country?",
+                    "How can traditional music be preserved for future generations?",
+                    "What role should the government play in preserving cultural music?",
+                    "Do you think traditional music is still relevant to young people?"
+                ]
+            },
+            {
+                "main_question": "What impact do you think social media has had on genuine human connections?",
+                "follow_up_questions": [
+                    "How has social media changed the way you communicate with others?",
+                    "Do you think social media has made people more or less social?",
+                    "What are the positive and negative aspects of social media?",
+                    "How do you think social media will evolve in the future?"
+                ]
+            }
         ]
     },
     "part2": {
         "basic": [
-            "Describe a person who is important to you. You should say: who this person is, how you know them, what they are like, and explain why they are important to you.",
-            "Describe a place you like to visit. You should say: where it is, when you go there, what you do there, and explain why you like this place.",
-            "Describe something you bought recently. You should say: what it was, where you bought it, why you bought it, and explain how you felt about this purchase."
+            {
+                "topic": "Describe a person who is important to you. You should say: who this person is, how you know them, what they are like, and explain why they are important to you.",
+                "linked_part3_questions": [
+                    "What qualities do you think make a good friend?",
+                    "How do you think friendships change as people get older?",
+                    "Do you think it's important to have close relationships? Why?",
+                    "How do you think technology has affected the way people maintain friendships?"
+                ]
+            },
+            {
+                "topic": "Describe a place you like to visit. You should say: where it is, when you go there, what you do there, and explain why you like this place.",
+                "linked_part3_questions": [
+                    "What types of places do people in your country like to visit?",
+                    "How do you think tourism has changed in recent years?",
+                    "Do you think it's important for people to travel? Why?",
+                    "What are the advantages and disadvantages of tourism?"
+                ]
+            },
+            {
+                "topic": "Describe something you bought recently. You should say: what it was, where you bought it, why you bought it, and explain how you felt about this purchase.",
+                "linked_part3_questions": [
+                    "How do you think shopping habits have changed over the years?",
+                    "What factors do you think influence people's buying decisions?",
+                    "Do you think people today are more materialistic than in the past?",
+                    "How important is it to be a smart consumer?"
+                ]
+            },
+            {
+                "topic": "Describe a memorable journey you have taken. You should say: where you went, who you went with, what happened during the journey, and explain why it was memorable.",
+                "linked_part3_questions": [
+                    "What types of journeys do people in your country typically take?",
+                    "How do you think travel has become easier or more difficult?",
+                    "Do you think it's important for people to travel? Why?",
+                    "What are the benefits of traveling to different places?"
+                ]
+            },
+            {
+                "topic": "Describe a skill you would like to learn. You should say: what the skill is, why you want to learn it, how you would learn it, and explain how this skill would benefit you.",
+                "linked_part3_questions": [
+                    "What skills do you think are most valuable in today's world?",
+                    "How do you think the way people learn has changed?",
+                    "Do you think it's important to keep learning throughout life?",
+                    "What role should education play in developing skills?"
+                ]
+            }
         ],
         "intermediate": [
-            "Describe a memorable journey you have taken. You should say: where you went, who you went with, what happened during the journey, and explain why it was memorable.",
-            "Describe a skill you would like to learn. You should say: what the skill is, why you want to learn it, how you would learn it, and explain how this skill would benefit you.",
-            "Describe an interesting tradition in your country. You should say: what the tradition is, when it happens, how people celebrate it, and explain why you find it interesting."
+            {
+                "topic": "Describe a memorable journey you have taken. You should say: where you went, who you went with, what happened during the journey, and explain why it was memorable.",
+                "linked_part3_questions": [
+                    "How do you think social relationships have changed with technology?",
+                    "What role should the government play in people's leisure activities?",
+                    "How do you think people's hobbies reflect their personality?",
+                    "What are the advantages and disadvantages of competitive sports?"
+                ]
+            },
+            {
+                "topic": "Describe a skill you would like to learn. You should say: what the skill is, why you want to learn it, how you would learn it, and explain how this skill would benefit you.",
+                "linked_part3_questions": [
+                    "How do you think the way people learn has changed over time?",
+                    "What role should technology play in education?",
+                    "Do you think traditional learning methods are still effective?",
+                    "How important is practical experience compared to theoretical knowledge?"
+                ]
+            },
+            {
+                "topic": "Describe an interesting tradition in your country. You should say: what the tradition is, when it happens, how people celebrate it, and explain why you find it interesting.",
+                "linked_part3_questions": [
+                    "How do you think cultural traditions should be preserved?",
+                    "What role should the government play in preserving traditions?",
+                    "Do you think young people are still interested in traditional customs?",
+                    "How do you think globalization affects local traditions?"
+                ]
+            },
+            {
+                "topic": "Describe a time when you had to make a difficult decision. You should say: what the decision was, what options you had, how you made the decision, and explain what you learned from this experience.",
+                "linked_part3_questions": [
+                    "How do you think people's decision-making processes have changed?",
+                    "What role should emotions play in making important decisions?",
+                    "Do you think it's easier or harder to make decisions today?",
+                    "How important is it to consider the consequences of our decisions?"
+                ]
+            },
+            {
+                "topic": "Describe a technological advancement that has changed people's lives. You should say: what the advancement is, how it has changed lives, what the positive and negative effects are, and explain your opinion about this change.",
+                "linked_part3_questions": [
+                    "How do you think technology will continue to change our lives?",
+                    "What ethical considerations should be taken into account when developing new technologies?",
+                    "Do you think people are too dependent on technology?",
+                    "How should society prepare for future technological changes?"
+                ]
+            }
         ],
         "advanced": [
-            "Describe a time when you had to make a difficult decision. You should say: what the decision was, what options you had, how you made the decision, and explain what you learned from this experience.",
-            "Describe a global issue that concerns you. You should say: what the issue is, how it affects people, what causes this issue, and explain what you think should be done about it.",
-            "Describe a technological advancement that has changed people's lives. You should say: what the advancement is, how it has changed lives, what the positive and negative effects are, and explain your opinion about this change."
+            {
+                "topic": "Describe a time when you had to make a difficult decision. You should say: what the decision was, what options you had, how you made the decision, and explain what you learned from this experience.",
+                "linked_part3_questions": [
+                    "In what ways might artificial intelligence change human relationships in the future?",
+                    "Should governments invest more in sports facilities or cultural institutions? Why?",
+                    "How do you think the concept of work-life balance will evolve in the coming decades?",
+                    "What ethical considerations should be taken into account when developing new technologies?"
+                ]
+            },
+            {
+                "topic": "Describe a global issue that concerns you. You should say: what the issue is, how it affects people, what causes this issue, and explain what you think should be done about it.",
+                "linked_part3_questions": [
+                    "How do you think global issues should be addressed?",
+                    "What role should international cooperation play in solving global problems?",
+                    "Do you think individuals can make a difference in global issues?",
+                    "How should we balance economic development with environmental protection?"
+                ]
+            },
+            {
+                "topic": "Describe a technological advancement that has changed people's lives. You should say: what the advancement is, how it has changed lives, what the positive and negative effects are, and explain your opinion about this change.",
+                "linked_part3_questions": [
+                    "What ethical considerations should be taken into account when developing new technologies?",
+                    "How should society prepare for future technological changes?",
+                    "Do you think people are too dependent on technology?",
+                    "How do you think technology will continue to change our lives?"
+                ]
+            },
+            {
+                "topic": "Describe a significant change in your life. You should say: what the change was, when it happened, how it affected you, and explain why it was significant.",
+                "linked_part3_questions": [
+                    "How do you think people's ability to adapt to change has evolved?",
+                    "What role should education play in preparing people for change?",
+                    "Do you think people today face more or fewer changes than in the past?",
+                    "How important is it to embrace change in today's world?"
+                ]
+            },
+            {
+                "topic": "Describe a time when you had to work with others to achieve a goal. You should say: what the goal was, who you worked with, what your role was, and explain what you learned from this experience.",
+                "linked_part3_questions": [
+                    "How do you think teamwork has changed in the modern workplace?",
+                    "What skills are most important for effective collaboration?",
+                    "Do you think people are better or worse at working together today?",
+                    "How should leadership be balanced with teamwork?"
+                ]
+            }
         ]
     },
     "part3": {
         "basic": [
-            "What are the benefits of having good friends?",
-            "How do people in your country usually spend their weekends?",
-            "What are some popular hobbies in your country?",
-            "Do you think it's important for children to play sports? Why?"
+            {
+                "main_question": "What are the benefits of having good friends?",
+                "follow_up_questions": [
+                    "How do you think friendships develop?",
+                    "What qualities do you think make a good friend?",
+                    "Do you think it's easier or harder to make friends today?",
+                    "How do you think friendships change as people get older?"
+                ]
+            },
+            {
+                "main_question": "How do people in your country usually spend their weekends?",
+                "follow_up_questions": [
+                    "How do you think weekend activities have changed over time?",
+                    "What do you think influences how people spend their free time?",
+                    "Do you think people have enough free time these days?",
+                    "How important is it to have a good work-life balance?"
+                ]
+            },
+            {
+                "main_question": "What are some popular hobbies in your country?",
+                "follow_up_questions": [
+                    "How do you think people's hobbies reflect their personality?",
+                    "Do you think hobbies have become more or less important?",
+                    "What factors influence what hobbies people choose?",
+                    "How do you think technology has affected people's hobbies?"
+                ]
+            },
+            {
+                "main_question": "Do you think it's important for children to play sports? Why?",
+                "follow_up_questions": [
+                    "What are the advantages and disadvantages of competitive sports?",
+                    "How do you think sports help children develop?",
+                    "Do you think schools should focus more on sports or academics?",
+                    "What role should parents play in children's sports activities?"
+                ]
+            }
         ],
         "intermediate": [
-            "How do you think social relationships have changed with technology?",
-            "What role should the government play in people's leisure activities?",
-            "How do you think people's hobbies reflect their personality?",
-            "What are the advantages and disadvantages of competitive sports?"
+            {
+                "main_question": "How do you think social relationships have changed with technology?",
+                "follow_up_questions": [
+                    "What are the positive and negative effects of social media on relationships?",
+                    "Do you think people are more or less social today?",
+                    "How has technology changed the way people communicate?",
+                    "What impact do you think this will have on future generations?"
+                ]
+            },
+            {
+                "main_question": "What role should the government play in people's leisure activities?",
+                "follow_up_questions": [
+                    "How should governments balance funding for different types of activities?",
+                    "Do you think the government should promote certain types of leisure activities?",
+                    "What are the benefits of government investment in leisure facilities?",
+                    "How should governments decide what activities to support?"
+                ]
+            },
+            {
+                "main_question": "How do you think people's hobbies reflect their personality?",
+                "follow_up_questions": [
+                    "Do you think people choose hobbies based on their personality or develop personality through hobbies?",
+                    "How do you think hobbies affect people's mental health?",
+                    "What role do hobbies play in people's social lives?",
+                    "How do you think people's hobbies change throughout their lives?"
+                ]
+            },
+            {
+                "main_question": "What are the advantages and disadvantages of competitive sports?",
+                "follow_up_questions": [
+                    "How do you think competitive sports affect children's development?",
+                    "What role should competition play in education?",
+                    "Do you think people are becoming more or less competitive?",
+                    "How should we balance competition with cooperation?"
+                ]
+            }
         ],
         "advanced": [
-            "In what ways might artificial intelligence change human relationships in the future?",
-            "Should governments invest more in sports facilities or cultural institutions? Why?",
-            "How do you think the concept of work-life balance will evolve in the coming decades?",
-            "What ethical considerations should be taken into account when developing new technologies?"
+            {
+                "main_question": "In what ways might artificial intelligence change human relationships in the future?",
+                "follow_up_questions": [
+                    "What ethical considerations should be taken into account when developing AI?",
+                    "How should society prepare for increased AI integration?",
+                    "Do you think AI will make human relationships stronger or weaker?",
+                    "What role should humans play in an AI-driven world?"
+                ]
+            },
+            {
+                "main_question": "Should governments invest more in sports facilities or cultural institutions? Why?",
+                "follow_up_questions": [
+                    "How should governments balance different types of public investments?",
+                    "What criteria should be used to decide funding priorities?",
+                    "Do you think cultural activities are as important as physical activities?",
+                    "How should governments measure the success of their investments?"
+                ]
+            },
+            {
+                "main_question": "How do you think the concept of work-life balance will evolve in the coming decades?",
+                "follow_up_questions": [
+                    "What factors will influence work-life balance in the future?",
+                    "How should employers and employees adapt to changing work patterns?",
+                    "Do you think technology will help or hinder work-life balance?",
+                    "What role should government policy play in work-life balance?"
+                ]
+            },
+            {
+                "main_question": "What ethical considerations should be taken into account when developing new technologies?",
+                "follow_up_questions": [
+                    "Who should be responsible for ensuring ethical technology development?",
+                    "How should we balance innovation with ethical concerns?",
+                    "What role should public opinion play in technology development?",
+                    "How should we prepare future generations for ethical technology use?"
+                ]
+            }
         ]
     }
 }
