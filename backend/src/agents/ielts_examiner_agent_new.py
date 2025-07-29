@@ -146,6 +146,7 @@ class IELTSExaminerAgentNew(Agent):
         Returns:
             Complete instruction string
         """
+        print(questions)
         # Extract questions from the new structure
         part1_main = questions["part1"]["main_question"]
         part1_follow_ups = questions["part1"]["follow_up_questions"]
