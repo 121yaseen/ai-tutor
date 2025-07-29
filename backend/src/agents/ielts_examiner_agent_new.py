@@ -146,13 +146,16 @@ class IELTSExaminerAgentNew(Agent):
         Returns:
             Complete instruction string
         """
-        print(questions)
         # Extract questions from the new structure
         part1_main = questions["part1"]["main_question"]
         part1_follow_ups = questions["part1"]["follow_up_questions"]
         part2_topic = questions["part2"]["topic"]
         part3_main = questions["part3"]["main_question"]
         part3_follow_ups = questions["part3"]["follow_up_questions"]
+        
+        # Build the questions arrays for the JSON template
+        part1_questions = [part1_main] + part1_follow_ups
+        part3_questions = [part3_main] + part3_follow_ups
         
         instructions = f"""
 # IELTS SPEAKING EXAMINER - PROFESSIONAL PROTOCOL
@@ -306,36 +309,36 @@ After completing all three parts of the test, you MUST follow these steps in ord
    Create a detailed test result with this EXACT structure (replace placeholders with actual data):
 
 ```json
-{
+{{
   "test_date": "2025-01-27T10:30:00",
   "test_number": 1,
   "band_score": 6.5,
-  "detailed_scores": {
+  "detailed_scores": {{
     "fluency": 6,
     "vocabulary": 7,
     "grammar": 6,
     "pronunciation": 7
-  },
-  "answers": {
-    "Part 1": {
-      "questions": ["{part1_main}", "{part1_follow_ups[0]}", "{part1_follow_ups[1]}", "{part1_follow_ups[2]}", "{part1_follow_ups[3]}"],
+  }},
+  "answers": {{
+    "Part 1": {{
+      "questions": {part1_questions},
       "responses": ["Candidate's actual response to question 1", "Candidate's actual response to question 2", "Candidate's actual response to question 3", "Candidate's actual response to question 4", "Candidate's actual response to question 5"]
-    },
-    "Part 2": {
+    }},
+    "Part 2": {{
       "topic": "{part2_topic}",
       "response": "Candidate's actual 1-2 minute response to the topic"
-    },
-    "Part 3": {
-      "questions": ["{part3_main}", "{part3_follow_ups[0]}", "{part3_follow_ups[1]}", "{part3_follow_ups[2]}", "{part3_follow_ups[3]}"],
+    }},
+    "Part 3": {{
+      "questions": {part3_questions},
       "responses": ["Candidate's actual response to question 1", "Candidate's actual response to question 2", "Candidate's actual response to question 3", "Candidate's actual response to question 4", "Candidate's actual response to question 5"]
-    }
-  },
-  "feedback": {
+    }}
+  }},
+  "feedback": {{
     "fluency": "Detailed analysis of fluency with specific examples from the candidate's performance",
     "vocabulary": "Detailed analysis of vocabulary usage with specific examples",
     "grammar": "Detailed analysis of grammar with specific examples",
     "pronunciation": "Detailed analysis of pronunciation with specific examples"
-  },
+  }},
   "strengths": [
     "Specific strength 1 with examples from the test",
     "Specific strength 2 with examples from the test"
@@ -344,7 +347,7 @@ After completing all three parts of the test, you MUST follow these steps in ord
     "Specific area for improvement 1 with concrete suggestions",
     "Specific area for improvement 2 with concrete suggestions"
   ]
-}
+}}
 ```
 
 2. **MANDATORY TOOL CALL:**
