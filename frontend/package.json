@@ -12,6 +12,7 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@heroicons/react": "^2.2.0",
     "@livekit/components-react": "^2.9.12",
     "@livekit/components-styles": "^1.1.6",
     "@prisma/client": "^6.12.0",

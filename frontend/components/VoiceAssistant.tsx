@@ -16,12 +16,20 @@ import { useCallback, useEffect, useState } from 'react'
 import { CloseIcon } from '@/components/CloseIcon'
 import { NoAgentNotification } from '@/components/NoAgentNotification'
 import TranscriptionView from '@/components/TranscriptionView'
+import { TestPreparationPopup } from '@/components/TestPreparationPopup'
 import type { ConnectionDetails } from '@/app/api/connection-details/route'
 
 export function VoiceAssistant() {
   const [room] = useState(new Room())
+  const [showPreparationPopup, setShowPreparationPopup] = useState(false)
 
   const onConnectButtonClicked = useCallback(async () => {
+    setShowPreparationPopup(true)
+  }, [])
+
+  const handleStartTest = useCallback(async () => {
+    setShowPreparationPopup(false)
+    
     const url = new URL(
       process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT ??
         '/api/connection-details',
@@ -50,6 +58,12 @@ export function VoiceAssistant() {
       <div className="lk-room-container max-w-[1024px] w-[90vw] mx-auto max-h-[90vh]">
         <SimpleVoiceAssistant onConnectButtonClicked={onConnectButtonClicked} />
       </div>
+      
+      <TestPreparationPopup
+        isOpen={showPreparationPopup}
+        onClose={() => setShowPreparationPopup(false)}
+        onStartTest={handleStartTest}
+      />
     </RoomContext.Provider>
   )
 }
@@ -139,7 +153,7 @@ function ControlBar(props: { onConnectButtonClicked: () => void }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, top: '-10px' }}
             transition={{ duration: 1, ease: [0.09, 1.04, 0.245, 1.055] }}
-            className="uppercase absolute left-1/2 -translate-x-1/2 px-4 py-2 bg-white text-black rounded-md"
+            className="uppercase absolute left-1/2 -translate-x-1/2 px-4 py-2 bg-white text-black rounded-md hover:bg-gray-100 transition-colors"
             onClick={() => props.onConnectButtonClicked()}
           >
             Start the test
