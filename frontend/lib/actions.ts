@@ -34,14 +34,36 @@ export async function getProfile() {
     return null
   }
   
-  if (!user.email) {
-    console.error('❌ getProfile - User missing email, full object:', JSON.stringify(user, null, 2))
+  // Try to get email from multiple sources (Fix 2)
+  const userEmail = user.email || 
+                   user.user_metadata?.email || 
+                   user.identities?.[0]?.identity_data?.email ||
+                   user.app_metadata?.email
+
+  console.log('🔍 getProfile - Email sources check:', {
+    directEmail: user.email,
+    metadataEmail: user.user_metadata?.email,
+    identityEmail: user.identities?.[0]?.identity_data?.email,
+    appMetadataEmail: user.app_metadata?.email,
+    finalEmail: userEmail
+  })
+
+  if (!userEmail) {
+    console.error('❌ getProfile - No email found from any source')
+    console.error('Full user object for debugging:', JSON.stringify(user, null, 2))
     return null
   }
 
+  console.log('✅ getProfile - Email resolved:', userEmail)
+
   try {
     const profile = await prisma.profile.findUnique({
-      where: { email: user.email },
+      where: { email: userEmail }, // Use resolved email
+    })
+    console.log('🔍 getProfile - Database query result:', {
+      hasProfile: !!profile,
+      profileId: profile?.id,
+      profileEmail: profile?.email
     })
     return profile
   } catch (error) {
@@ -56,7 +78,7 @@ export async function getProfile() {
         await prisma.$disconnect()
         await new Promise(resolve => setTimeout(resolve, 100)) // Small delay
         const profile = await prisma.profile.findUnique({
-          where: { email: user.email },
+          where: { email: userEmail }, // Use resolved email
         })
         return profile
       } catch (retryError) {
@@ -101,14 +123,36 @@ export async function updateProfile(formData: Partial<Profile>) {
     throw new Error('User not authenticated')
   }
   
-  if (!user.email) {
-    console.error('❌ updateProfile - User missing email, full object:', JSON.stringify(user, null, 2))
-    throw new Error('User email is required but not available')
+  // Try to get email from multiple sources (Fix 2)
+  const userEmail = user.email || 
+                   user.user_metadata?.email || 
+                   user.identities?.[0]?.identity_data?.email ||
+                   user.app_metadata?.email
+
+  console.log('🔍 updateProfile - Email sources check:', {
+    directEmail: user.email,
+    metadataEmail: user.user_metadata?.email,
+    identityEmail: user.identities?.[0]?.identity_data?.email,
+    appMetadataEmail: user.app_metadata?.email,
+    finalEmail: userEmail,
+    identitiesCount: user.identities?.length || 0,
+    identitiesPreview: user.identities?.map(id => ({
+      provider: id.provider,
+      hasEmail: !!id.identity_data?.email
+    }))
+  })
+
+  if (!userEmail) {
+    console.error('❌ updateProfile - No email found from any source')
+    console.error('Full user object for debugging:', JSON.stringify(user, null, 2))
+    throw new Error('User email is required but not available from any source')
   }
+
+  console.log('✅ updateProfile - Email resolved:', userEmail)
 
   // Create a clean object without any extra fields
   const cleanData = {
-    email: user.email,
+    email: userEmail, // Use the resolved email
     first_name: formData.first_name,
     last_name: formData.last_name,
     full_name: formData.full_name,
@@ -127,7 +171,7 @@ export async function updateProfile(formData: Partial<Profile>) {
   try {
     console.log('🔍 updateProfile - Starting database operations with:', {
       userId: user.id,
-      userEmail: user.email,
+      userEmail: userEmail,
       cleanDataKeys: Object.keys(cleanData)
     })
     
@@ -142,21 +186,21 @@ export async function updateProfile(formData: Partial<Profile>) {
       // Profile exists by ID, update it
       await prisma.profile.update({
         where: { id: user.id },
-        data: { ...cleanData, email: user.email } // Ensure email is updated too
+        data: { ...cleanData, email: userEmail } // Ensure email is updated too
       })
       console.log('✅ updateProfile - Successfully updated profile by ID')
     } else {
-      console.log('🔍 updateProfile - No profile found by ID, checking by email:', user.email)
+      console.log('🔍 updateProfile - No profile found by ID, checking by email:', userEmail)
       // No profile by ID, check if one exists by email
       profile = await prisma.profile.findUnique({
-        where: { email: user.email }
+        where: { email: userEmail }
       })
       
       if (profile) {
         console.log('✅ updateProfile - Found profile by email, updating ID...')
         // Profile exists by email but different ID, update the ID
         await prisma.profile.update({
-          where: { email: user.email },
+          where: { email: userEmail },
           data: { ...cleanData, id: user.id }
         })
         console.log('✅ updateProfile - Successfully updated profile by email')
@@ -164,7 +208,7 @@ export async function updateProfile(formData: Partial<Profile>) {
         console.log('🆕 updateProfile - No profile found, creating new one...')
         // No profile exists, create a new one
         await prisma.profile.create({
-          data: { ...cleanData, id: user.id, email: user.email }
+          data: { ...cleanData, id: user.id, email: userEmail }
         })
         console.log('✅ updateProfile - Successfully created new profile')
       }
@@ -189,21 +233,21 @@ export async function updateProfile(formData: Partial<Profile>) {
         if (profile) {
           await prisma.profile.update({
             where: { id: user.id },
-            data: { ...cleanData, email: user.email }
+            data: { ...cleanData, email: userEmail }
           })
         } else {
           profile = await prisma.profile.findUnique({
-            where: { email: user.email }
+            where: { email: userEmail }
           })
           
           if (profile) {
             await prisma.profile.update({
-              where: { email: user.email },
+              where: { email: userEmail },
               data: { ...cleanData, id: user.id }
             })
           } else {
             await prisma.profile.create({
-              data: { ...cleanData, id: user.id, email: user.email }
+              data: { ...cleanData, id: user.id, email: userEmail }
             })
           }
         }
@@ -221,11 +265,19 @@ export async function updateProfile(formData: Partial<Profile>) {
 export async function getStudentHistory(): Promise<JsonValue[] | null> {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user || !user.email) return null
+    if (!user) return null
+
+    // Try to get email from multiple sources (Fix 2)
+    const userEmail = user.email || 
+                     user.user_metadata?.email || 
+                     user.identities?.[0]?.identity_data?.email ||
+                     user.app_metadata?.email
+
+    if (!userEmail) return null
 
     try {
         const student = await prisma.student.findUnique({
-            where: { email: user.email }
+            where: { email: userEmail }
         });
         return student?.history ? student.history as JsonValue[] : [];
     } catch (error) {
@@ -240,7 +292,7 @@ export async function getStudentHistory(): Promise<JsonValue[] | null> {
                 await prisma.$disconnect()
                 await new Promise(resolve => setTimeout(resolve, 100)) // Small delay
                 const student = await prisma.student.findUnique({
-                    where: { email: user.email }
+                    where: { email: userEmail }
                 });
                 return student?.history ? student.history as JsonValue[] : [];
             } catch (retryError) {
