@@ -1,9 +1,6 @@
 import pytest
-import asyncio
-from unittest.mock import Mock, patch, MagicMock
-from datetime import datetime
+from unittest.mock import Mock, patch
 from src.tools.agent_tools import save_test_result_to_json, set_database
-from src.models.student_models import StudentPerformance
 
 
 class TestSaveTestResultToJson:

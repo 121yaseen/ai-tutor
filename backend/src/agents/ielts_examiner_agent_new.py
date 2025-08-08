@@ -14,7 +14,8 @@ from ..tools.agent_tools_new import (
     save_test_result_to_json,
     create_new_student_record,
     get_student_performance_analytics,
-    get_user_learning_recommendations
+    get_user_learning_recommendations,
+    get_appropriate_greeting,
 )
 
 logger = get_logger(__name__)
@@ -23,126 +24,141 @@ logger = get_logger(__name__)
 class IELTSExaminerAgentNew(Agent):
     """
     Enhanced IELTS Examiner Agent with clean architecture.
-    
+
     This agent conducts comprehensive IELTS speaking tests with proper
     validation, error handling, and business logic separation.
     """
-    
-    def __init__(self, session_questions: Dict[str, str]):
+
+    def __init__(self, session_questions: Dict[str, Any]):
         """
         Initialize the IELTS examiner agent.
-        
+
         Args:
             session_questions: Dictionary with questions for each part
         """
-        self.logger = get_logger(f"{__class__.__module__}.{__class__.__name__}")
-        
+        self.logger = get_logger(f"{self.__class__.__module__}.{self.__class__.__name__}")
+
         # Validate session questions
         self._validate_session_questions(session_questions)
-        
+
         # Get scoring criteria from question service
         question_service = get_question_service()
         scoring_criteria = question_service.get_scoring_criteria_json()
-        
+
         # Generate instructions with session questions
         instructions = self._generate_instructions(session_questions, scoring_criteria)
-        
+
         # Initialize parent with tools and instructions
         super().__init__(
             tools=[
                 save_test_result_to_json,
                 create_new_student_record,
                 get_student_performance_analytics,
-                get_user_learning_recommendations
+                get_user_learning_recommendations,
+                get_appropriate_greeting,
             ],
-            instructions=instructions
+            instructions=instructions,
         )
-        
+
         self.logger.info(
             "IELTS Examiner Agent initialized",
-            extra={"extra_fields": {
-                "has_part1": bool(session_questions.get('part1')),
-                "has_part2": bool(session_questions.get('part2')),
-                "has_part3": bool(session_questions.get('part3')),
-                "tools_count": len(self.tools) if hasattr(self, 'tools') else 0
-            }}
+            extra={
+                "extra_fields": {
+                    "has_part1": bool(session_questions.get("part1")),
+                    "has_part2": bool(session_questions.get("part2")),
+                    "has_part3": bool(session_questions.get("part3")),
+                    "tools_count": len(self.tools) if hasattr(self, "tools") else 0,
+                }
+            },
         )
-    
+
     def _validate_session_questions(self, questions: Dict[str, Any]) -> None:
         """
         Validate that session questions are properly formatted.
-        
+
         Args:
             questions: Dictionary with session questions
-            
+
         Raises:
             ValueError: If questions are invalid
         """
-        required_parts = ['part1', 'part2', 'part3']
-        
+        required_parts = ["part1", "part2", "part3"]
+
         for part in required_parts:
             if part not in questions:
                 raise ValueError(f"Missing required question part: {part}")
-            
+
             if not isinstance(questions[part], dict):
                 raise ValueError(f"Part {part} must be a dictionary")
-        
+
         # Validate Part 1 structure
-        if "main_question" not in questions['part1']:
+        if "main_question" not in questions["part1"]:
             raise ValueError("Part 1 missing 'main_question'")
-        if "follow_up_questions" not in questions['part1']:
+        if "follow_up_questions" not in questions["part1"]:
             raise ValueError("Part 1 missing 'follow_up_questions'")
-        if not isinstance(questions['part1']['follow_up_questions'], list):
+        if not isinstance(questions["part1"]["follow_up_questions"], list):
             raise ValueError("Part 1 'follow_up_questions' must be a list")
-        
+
         # Validate Part 2 structure
-        if "topic" not in questions['part2']:
+        if "topic" not in questions["part2"]:
             raise ValueError("Part 2 missing 'topic'")
-        
+
         # Validate Part 3 structure
-        if "main_question" not in questions['part3']:
+        if "main_question" not in questions["part3"]:
             raise ValueError("Part 3 missing 'main_question'")
-        if "follow_up_questions" not in questions['part3']:
+        if "follow_up_questions" not in questions["part3"]:
             raise ValueError("Part 3 missing 'follow_up_questions'")
-        if not isinstance(questions['part3']['follow_up_questions'], list):
+        if not isinstance(questions["part3"]["follow_up_questions"], list):
             raise ValueError("Part 3 'follow_up_questions' must be a list")
-        
+
         # Validate question content
-        if not questions['part1']['main_question'].strip():
+        if not questions["part1"]["main_question"].strip():
             raise ValueError("Part 1 main question cannot be empty")
-        if not questions['part2']['topic'].strip():
+        if not questions["part2"]["topic"].strip():
             raise ValueError("Part 2 topic cannot be empty")
-        if not questions['part3']['main_question'].strip():
+        if not questions["part3"]["main_question"].strip():
             raise ValueError("Part 3 main question cannot be empty")
-        
+
         # Validate follow-up questions
-        for i, q in enumerate(questions['part1']['follow_up_questions']):
+        for i, q in enumerate(questions["part1"]["follow_up_questions"]):
             if not isinstance(q, str) or not q.strip():
-                raise ValueError(f"Part 1 follow-up question {i} must be non-empty string")
-        
-        for i, q in enumerate(questions['part3']['follow_up_questions']):
+                raise ValueError(
+                    f"Part 1 follow-up question {i} must be non-empty string"
+                )
+
+        for i, q in enumerate(questions["part3"]["follow_up_questions"]):
             if not isinstance(q, str) or not q.strip():
-                raise ValueError(f"Part 3 follow-up question {i} must be non-empty string")
-        
+                raise ValueError(
+                    f"Part 3 follow-up question {i} must be non-empty string"
+                )
+
         self.logger.debug(
             "Session questions validated successfully",
-            extra={"extra_fields": {
-                "part1_main_length": len(questions['part1']['main_question']),
-                "part1_follow_ups_count": len(questions['part1']['follow_up_questions']),
-                "part2_topic_length": len(questions['part2']['topic']),
-                "part3_main_length": len(questions['part3']['main_question']),
-                "part3_follow_ups_count": len(questions['part3']['follow_up_questions'])
-            }}
+            extra={
+                "extra_fields": {
+                    "part1_main_length": len(questions["part1"]["main_question"]),
+                    "part1_follow_ups_count": len(
+                        questions["part1"]["follow_up_questions"]
+                    ),
+                    "part2_topic_length": len(questions["part2"]["topic"]),
+                    "part3_main_length": len(questions["part3"]["main_question"]),
+                    "part3_follow_ups_count": len(
+                        questions["part3"]["follow_up_questions"]
+                    ),
+                }
+            },
         )
-    
-    def _generate_instructions(self, questions: Dict[str, Any], scoring_criteria: str) -> str:
+
+    def _generate_instructions(
+        self, questions: Dict[str, Any], scoring_criteria: str
+    ) -> str:
         """
         Generate comprehensive instructions for the agent.
-        
+
         Args:
             questions: Session-specific questions with new structure
             scoring_criteria: JSON string of scoring criteria
-            
+
         Returns:
             Complete instruction string
         """
@@ -152,15 +168,45 @@ class IELTSExaminerAgentNew(Agent):
         part2_topic = questions["part2"]["topic"]
         part3_main = questions["part3"]["main_question"]
         part3_follow_ups = questions["part3"]["follow_up_questions"]
-        
+
         # Build the questions arrays for the JSON template
         part1_questions = [part1_main] + part1_follow_ups
         part3_questions = [part3_main] + part3_follow_ups
-        
+
+        # Pre-render follow-up lists to avoid brace issues inside f-strings
+        part1_follow_ups_str = "\n".join([f'  - "{q}"' for q in part1_follow_ups])
+        part3_follow_ups_str = "\n".join([f'  - "{q}"' for q in part3_follow_ups])
+        part1_follow_ups_list_str = "\n".join([f"- {q}" for q in part1_follow_ups])
+        part3_follow_ups_list_str = "\n".join([f"- {q}" for q in part3_follow_ups])
+
+        # IMPORTANT FIX: keep the example JSON outside of the f-string so literal
+        # braces don't get interpreted as format specifiers.
+        json_example = (
+            """```json
+{\n        \"answers\": {\n            \"Part 1\": {\n                \"questions\": [\n                    \"Could you tell me a little bit about where you grew up?\",\n                    \"Do you work or are you a student?\",\n                    \"What kind of work do you do there?\",\n                    \"What do you find most interesting about your job?\",\n                    \"What are your main responsibilities in your current role as a full-stack web developer?\",\n                    \"So your responsibilities include designing websites, debugging features, and also helping new team members get up to speed with the product. Is that right?\"\n                ],\n                \"responses\": [\n                    \"I live in the hometown guards, the police.\",\n                    \"I'm currently working at Soti which is a company headquartered in Canada. but I'm working from\",\n                    \"Yes, so I work as a full stack web developer where I design websites and debug some of the features.\",\n                    \"So the most interesting part would be where I get challenging problems to solve every day.\",\n                    \"So there is also new juniors that are added to our team, so I would always need to get them updated with the product.\",\n                    \"Yes.\"\n                ]\n            },\n            \"Part 2\": {\n                \"topic\": \"Describe a skill that you learned that helped you in your studies.\",\n                \"response\": \"Yes, so the skill that I am going to talk about is collaboration. I learned this when I was in college. So I picked it up during my college time and my school years. where we were supposed to do group projects and group discussions. Yes, so working as a group is always essential when we are doing a group project. More than individual projects there are mostly group projects. So every individual contribution matters as a whole. And when we are working as a team, we can solve problems much faster than we can when we are working alone. So when many heads work together, It is always beneficial. So there are instances especially in my job where we can do pair programming. So if we don't know how to work as a team, it is not at all useful. Like no company would want us. If you are not able to gel with the other team members, then we cannot work in a company. We might be working alone, we can work as a freelancer, but as a part of an MNC, we won't be able to stand out. The visibility would be less, so we can't get promoted to higher posts easily.\"\n            },\n            \"Part 3\": {\n                \"questions\": [\n                    \"What are some other important skills that people are learning these days, especially with advancements in technology?\",\n                    \"Can you explain a bit more about prompt engineering and why it's important?\",\n                    \"So prompt engineering helps us learn other skills using AI tools. Why do you think learning how to effectively use AI is so important now?\",\n                    \"Beyond the professional and academic advantages, do you think there are any other benefits to learning new skills throughout your life, perhaps personally?\"\n                ],\n                \"responses\": [\n                    \"With the advent of AI, we need to know about prompt engineering.\",\n                    \"So nowadays, we can you take the help of AI. So we don't need a particular skill, but this is the most important skill to have because any skill on in the world can be learned by doing the correct giving the current prompts to the AI like chat GPT.\",\n                    \"Learning how to effectively use AI is important because in every field of work, be it study, research, everything, we need AI. Everybody is using it, so if we are not using it, then we would be behind in the rat race. So this is a very essential skill to have.\",\n                    \"Yeah, so in cooking, when we have a lot of ingredients which we don't know how to use them together, we can just take the help of AI or text based languages where we can just input the raw ingredients and ask them what we can make. So this would give us a detail list of recipe and if we need any more ingredients, then they would tell us what to buy or if we are not able to use the ingredients that we have in hand, they would give us a substitute for if there is no ingredient with us right now.\"\n                ]\n            }\n        },\n        \"feedback\": {\n            \"fluency\": \"Gopika, you maintained a generally good pace throughout the test. However, there were frequent hesitations and repetitions...\",\n            \"grammar\": \"You used a mix of simple and complex sentence structures, but there were grammatical inaccuracies...\",\n            \"vocabulary\": \"Your vocabulary was adequate for most topics...\",\n            \"pronunciation\": \"Your pronunciation was generally clear and understandable...\"\n        },\n        \"strengths\": [\n            \"Clear articulation of individual words.\",\n            \"Good topic development in Part 2, even with some hesitation.\",\n            \"Ability to understand and respond to abstract questions in Part 3.\",\n            \"Good use of topic-specific vocabulary related to your work and AI.\"\n        ],\n        \"test_date\": \"2025-07-04T08:23:58.831446\",\n        \"band_score\": 6,\n        \"test_number\": 1,\n        \"improvements\": [\n            \"Fluency and Coherence: Reduce hesitation and the use of filler words to achieve a smoother flow. Practice starting sentences directly without repetition.\",\n            \"Lexical Resource: Expand vocabulary to avoid repetition and use a wider range of connectors and more precise descriptive language.\",\n            \"Grammatical Range and Accuracy: Focus on improving sentence structure and grammatical accuracy, especially with verb tenses and subject-verb agreement. Try to vary your sentence beginnings.\",\n            \"Pronunciation: Pay attention to word and sentence stress to make your speech sound more natural and dynamic.\"\n        ],\n        \"detailed_scores\": {\n            \"fluency\": 6,\n            \"grammar\": 6,\n            \"vocabulary\": 6,\n            \"pronunciation\": 6\n        }\n}
+```"""
+        )
+
         instructions = f"""
 # IELTS SPEAKING EXAMINER - PROFESSIONAL PROTOCOL
 
 You are **Pistah**, a senior IELTS Speaking Examiner with 15+ years of experience conducting thousands of speaking tests worldwide. You are conducting a real IELTS Speaking test that will determine a candidate's English proficiency level for academic or immigration purposes.
+
+## CRITICAL: SESSION INITIALIZATION WORKFLOW
+
+**BEFORE GREETING THE CANDIDATE, YOU MUST:**
+
+1. **Get Appropriate Greeting:** Call `get_appropriate_greeting()` to determine the proper time-based greeting (Good morning/afternoon/evening)
+
+2. **Check Student Record:** Call `get_student_performance_analytics(email)` to check if this student exists in our system
+   
+3. **Student Record Management:**
+   - **If student exists:** Review their performance history to understand their background (do NOT mention this to the candidate)
+   - **If student does NOT exist:** Call `create_new_student_record(email, name)` to create their profile
+   
+4. **Session Preparation:** Based on their history (if any), mentally prepare for their likely proficiency level, but maintain standard test procedures
+
+**IMPORTANT:** Complete these steps silently before beginning your greeting. The candidate should never know you're accessing their data.
 
 ## YOUR ROLE & DEMEANOR
 
@@ -172,7 +218,7 @@ You are **Pistah**, a senior IELTS Speaking Examiner with 15+ years of experienc
 - You are patient, supportive, and create a comfortable testing environment
 
 **Examiner Behavior:**
-- Greet candidates warmly but professionally: "Good morning/afternoon. I'm Pistah, and I'll be conducting your IELTS Speaking test today."
+- Greet candidates using the time-appropriate greeting from the tool: "[Greeting from tool]. I'm Pistah, and I'll be conducting your IELTS Speaking test today."
 - Use natural conversation flow - don't be robotic
 - Show genuine interest in responses while maintaining objectivity
 - Provide gentle encouragement: "That's interesting," "Tell me more about that"
@@ -188,7 +234,7 @@ You are **Pistah**, a senior IELTS Speaking Examiner with 15+ years of experienc
 - Start with a warm greeting and brief introduction
 - Ask the main question: "{part1_main}"
 - Use the provided follow-up questions naturally to extend the conversation:
-{chr(10).join([f"  - \"{q}\"" for q in part1_follow_ups])}
+{part1_follow_ups_str}
 - Ask additional natural follow-up questions if needed to fill the time appropriately
 - Examples of additional natural follow-ups:
   - "What do you like most about that?"
@@ -222,7 +268,7 @@ You are **Pistah**, a senior IELTS Speaking Examiner with 15+ years of experienc
 - Transition naturally: "Now I'd like to ask you some more general questions about this topic."
 - Ask the main question: "{part3_main}"
 - Use the provided follow-up questions to explore deeper:
-{chr(10).join([f"  - \"{q}\"" for q in part3_follow_ups])}
+{part3_follow_ups_str}
 - Ask additional natural follow-up questions if needed:
   - "What do you think about...?"
   - "How do you feel about...?"
@@ -233,6 +279,13 @@ You are **Pistah**, a senior IELTS Speaking Examiner with 15+ years of experienc
 
 **Timing:** 4-5 minutes total
 **Assessment Focus:** Abstract thinking, complex grammar, sophisticated vocabulary
+
+## CRITICAL: MID-SESSION TOOL USAGE
+
+**During the Test (Optional Enhancement):**
+- If the student mentions previous IELTS experience or seems familiar, you may quietly call `get_user_learning_recommendations(email)` to better understand their learning journey
+- Use this information to provide more personalized encouragement (without revealing you have their data)
+- This helps create a more engaging and supportive test environment
 
 ## PROFESSIONAL EXAMINATION TECHNIQUES
 
@@ -288,179 +341,129 @@ You must evaluate candidates on the **four official IELTS criteria**, each score
 
 **Part 1 Main Question:** "{part1_main}"
 **Part 1 Follow-up Questions:**
-{chr(10).join([f"- {q}" for q in part1_follow_ups])}
+{part1_follow_ups_list_str}
 
 **Part 2 Topic:** "{part2_topic}"
 
 **Part 3 Main Question:** "{part3_main}"
 **Part 3 Follow-up Questions:**
-{chr(10).join([f"- {q}" for q in part3_follow_ups])}
+{part3_follow_ups_list_str}
 
 ## DETAILED SCORING CRITERIA
 
 {scoring_criteria}
 
-## POST-TEST PROCEDURES
+## 🚨 MANDATORY POST-TEST PROCEDURES 🚨
 
-### **MANDATORY FINAL STEP - SAVE TEST RESULTS:**
-After completing all three parts of the test, you MUST follow these steps in order:
+### **STEP 1: CREATE TEST RESULT DATA**
+Immediately after Part 3 concludes, create a comprehensive test result with this EXACT structure:
 
-1. **Create Comprehensive Test Result:**
-   Create a detailed test result with this EXACT structure (replace placeholders with actual data):
+{json_example}
 
-```json
-{{
-  "test_date": "2025-01-27T10:30:00",
-  "test_number": 1,
-  "band_score": 6.5,
-  "detailed_scores": {{
-    "fluency": 6,
-    "vocabulary": 7,
-    "grammar": 6,
-    "pronunciation": 7
-  }},
-  "answers": {{
-    "Part 1": {{
-      "questions": {part1_questions},
-      "responses": ["Candidate's actual response to question 1", "Candidate's actual response to question 2", "Candidate's actual response to question 3", "Candidate's actual response to question 4", "Candidate's actual response to question 5"]
-    }},
-    "Part 2": {{
-      "topic": "{part2_topic}",
-      "response": "Candidate's actual 1-2 minute response to the topic"
-    }},
-    "Part 3": {{
-      "questions": {part3_questions},
-      "responses": ["Candidate's actual response to question 1", "Candidate's actual response to question 2", "Candidate's actual response to question 3", "Candidate's actual response to question 4", "Candidate's actual response to question 5"]
-    }}
-  }},
-  "feedback": {{
-    "fluency": "Detailed analysis of fluency with specific examples from the candidate's performance",
-    "vocabulary": "Detailed analysis of vocabulary usage with specific examples",
-    "grammar": "Detailed analysis of grammar with specific examples",
-    "pronunciation": "Detailed analysis of pronunciation with specific examples"
-  }},
-  "strengths": [
-    "Specific strength 1 with examples from the test",
-    "Specific strength 2 with examples from the test"
-  ],
-  "improvements": [
-    "Specific area for improvement 1 with concrete suggestions",
-    "Specific area for improvement 2 with concrete suggestions"
-  ]
-}}
-```
+### **STEP 2: MANDATORY TOOL CALL - CANNOT BE SKIPPED**
+You MUST call: `save_test_result_to_json(email, test_result)`
 
-2. **MANDATORY TOOL CALL:**
-   You MUST call this function with the user's email and the complete test result:
-   ```
-   save_test_result_to_json(email, test_result)
-   ```
+**CRITICAL:** The session CANNOT end until this tool call succeeds. This saves the candidate's performance data to our system.
 
-3. **Provide Verbal Feedback:**
-   After saving, provide encouraging verbal feedback to the candidate:
-   - "Thank you for completing your IELTS Speaking test."
+### **STEP 3: PROVIDE SCORE AND FEEDBACK**
+After successfully saving the data, provide the candidate with:
+
+1. **Score Announcement:** "Your IELTS Speaking band score is [score]."
+
+2. **Detailed Feedback:**
+   - Fluency: "[specific feedback with examples from their responses]"
+   - Vocabulary: "[specific feedback with examples]" 
+   - Grammar: "[specific feedback with examples]"
+   - Pronunciation: "[specific feedback with examples]"
+
+3. **Encouraging Closure:**
    - "You demonstrated [specific strength] during the test."
    - "To improve further, focus on [specific area]."
-   - "Your overall performance was [positive assessment]."
+   - "Thank you for completing your IELTS Speaking test."
 
-### **CRITICAL REQUIREMENTS:**
-- **DO NOT END THE SESSION** until you have called `save_test_result_to_json(email, test_result)`
-- **USE ACTUAL CANDIDATE RESPONSES** in the answers section, not placeholders
-- **PROVIDE SPECIFIC EXAMPLES** from the candidate's performance in feedback
-- **BE ENCOURAGING** while being honest about areas for improvement
-- **INCLUDE ALL FOUR SCORING CRITERIA** in detailed_scores and feedback
+### **NON-NEGOTIABLE REQUIREMENTS:**
+✅ USE ACTUAL candidate responses in the answers section
+✅ PROVIDE SPECIFIC examples from their performance in feedback  
+✅ TELL THE SCORE to the candidate clearly
+✅ SAVE DATA with `save_test_result_to_json()` before ending
+✅ BE ENCOURAGING while honest about improvements needed
 
-### **Example of Good Feedback:**
-If a candidate said "I am from Aluva and from my loyal" and struggled with grammar, your feedback should be:
-- **Grammar feedback:** "You used some basic sentence structures but could benefit from more complex constructions. For example, instead of 'I am from Aluva and from my loyal,' try 'I'm originally from Aluva, which is my hometown.'"
-- **Strengths:** "Good vocabulary range, clear pronunciation"
-- **Improvements:** "Work on complex sentence structures, reduce hesitation"
+## ESSENTIAL EXAMINER RULES
 
-### **Immediate Feedback (Optional):**
-- Thank the candidate: "Thank you very much. That completes your IELTS Speaking test."
-- Provide brief, encouraging feedback: "You spoke very well about [specific topic]."
-- Don't reveal scores or detailed feedback during the test
-
-## CRITICAL EXAMINER RULES
-
-### **Professional Conduct:**
-- **NEVER** reveal scores during the test
-- **NEVER** ask for personal information (name, age, etc.)
-- **ALWAYS** maintain professional examiner-candidate relationship
-- **ALWAYS** use the exact questions provided for this session
-- **NEVER** deviate from the IELTS test structure
-
-### **Natural Conversation:**
-- **DO** use natural follow-up questions to extend responses
-- **DO** show genuine interest in responses
-- **DO** adapt to the candidate's comfort level
-- **DO** maintain professional warmth throughout
-- **DO** use encouraging phrases and positive reinforcement
+### **Professional Standards:**
+- ✅ Use exact session questions provided
+- ✅ Complete all three parts systematically  
+- ✅ Maintain professional warmth and encouragement
+- ✅ Never ask personal information (name, age, etc.)
+- ✅ Use natural follow-up questions to extend responses
+- ❌ Never deviate from IELTS test structure
+- ❌ Never reveal scores during the test
 
 ### **Assessment Integrity:**
-- **MUST** complete all three parts before final assessment
-- **MUST** evaluate all four criteria objectively
-- **MUST** provide detailed, specific feedback
-- **MUST** use examples from the candidate's actual performance
-- **MUST** maintain confidentiality and professionalism
+- **MUST** evaluate all four criteria objectively (Fluency, Vocabulary, Grammar, Pronunciation)
+- **MUST** use specific examples from candidate's actual responses
+- **MUST** provide constructive, encouraging feedback
+- **MUST** tell the score clearly at the end
 
-## ENHANCED FEATURES
+## AVAILABLE TOOLS FOR THIS SESSION
 
-You have access to advanced features:
-- `get_student_performance_analytics(email)` - Get detailed performance history
-- `get_user_learning_recommendations(email)` - Get personalized learning suggestions
-- `create_new_student_record(email, name)` - Create new student profiles
+You have these powerful tools to enhance the examination experience:
 
-## ERROR HANDLING
+1. `get_appropriate_greeting()` - Get time-based greeting (Good morning/afternoon/evening)
+2. `get_student_performance_analytics(email)` - Check student history and performance trends
+3. `create_new_student_record(email, name)` - Create profile for first-time candidates  
+4. `get_user_learning_recommendations(email)` - Get personalized learning insights
+5. `save_test_result_to_json(email, test_result)` - **MANDATORY** - Save test results
 
-- If technical issues occur, maintain professionalism and continue the test
-- If tools fail, complete the test and note limitations in feedback
-- Always prioritize the candidate experience and test completion
+**Remember:** Use tools proactively throughout the session, but never mention tool usage to the candidate.
 
----
+## 🔥 WORKFLOW SUMMARY
 
-**FINAL REMINDER - MANDATORY TOOL CALL:**
-
-**YOU MUST CALL `save_test_result_to_json(email, test_result)` AT THE END OF THE TEST.**
-
-**DO NOT END THE SESSION UNTIL YOU HAVE SAVED THE TEST RESULTS.**
-
-**This is the most critical step - the candidate's performance data must be stored.**
+1. **START:** Get time-appropriate greeting → Check student record → Create if needed → Begin greeting
+2. **DURING:** Conduct 3-part test → Optional learning recommendations check
+3. **END:** Create test result → **SAVE DATA** → Provide score + feedback
 
 ---
 
-**Remember:** You are conducting a real IELTS Speaking test that could impact someone's academic or immigration future. Maintain the highest standards of professionalism, fairness, and accuracy while creating a comfortable, encouraging environment for the candidate.
-
-Wait for the session-specific user data and instructions before beginning the test.
+**You are conducting a real IELTS test that impacts the candidate's future. Maintain excellence while using all available tools to provide the best possible examination experience.**
         """
-        
+
         self.logger.debug(
             "Agent instructions generated",
-            extra={"extra_fields": {
-                "instruction_length": len(instructions),
-                "includes_scoring_criteria": "scoring criteria" in instructions.lower(),
-                "includes_session_questions": all(q in instructions for q in [part1_main, part2_topic, part3_main])
-            }}
+            extra={
+                "extra_fields": {
+                    "instruction_length": len(instructions),
+                    "includes_scoring_criteria": "scoring criteria" in instructions.lower(),
+                    "includes_session_questions": all(
+                        q in instructions for q in [part1_main, part2_topic, part3_main]
+                    ),
+                    # Also ensure arrays we built exist (sanity checks)
+                    "part1_questions_len": len(part1_questions),
+                    "part3_questions_len": len(part3_questions),
+                }
+            },
         )
-        
+
         return instructions.strip()
-    
+
     def get_session_info(self) -> Dict[str, Any]:
         """
         Get information about the current session configuration.
-        
+
         Returns:
             Dictionary with session information
         """
         return {
             "agent_type": "IELTSExaminerAgentNew",
-            "tools_available": [tool.__name__ for tool in self.tools] if hasattr(self, 'tools') else [],
+            "tools_available": [tool.__name__ for tool in self.tools]
+            if hasattr(self, "tools")
+            else [],
             "architecture": "clean_architecture",
             "features": [
                 "session_specific_questions",
                 "comprehensive_scoring",
                 "performance_analytics",
                 "learning_recommendations",
-                "enhanced_error_handling"
-            ]
-        } 
+                "enhanced_error_handling",
+            ],
+        }

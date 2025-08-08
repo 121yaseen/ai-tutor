@@ -16,7 +16,6 @@ from ..core.exceptions import (
     IELTSExaminerException,
     ValidationException
 )
-from ..models.student import TestResult
 
 logger = get_logger(__name__)
 
@@ -38,7 +37,7 @@ def set_current_user_email(email: str) -> None:
     # Set logging context
     set_request_context(user_email=email)
     
-    logger.info(f"Current user email set: {email}")
+    logger.debug(f"Current user email set: {email}")
 
 
 def get_current_user_email() -> Optional[str]:
@@ -64,7 +63,7 @@ def set_current_session_id(session_id: str) -> None:
     # Set logging context
     set_request_context(session_id=session_id)
     
-    logger.info(f"Current session ID set: {session_id}")
+    logger.debug(f"Current session ID set: {session_id}")
 
 
 def get_current_session_id() -> Optional[str]:
@@ -98,6 +97,7 @@ async def save_test_result_to_json(email: str, test_result: Dict[str, Any]) -> s
     """
     # Generate request ID for tracing
     request_id = generate_request_id()
+    logger.info(f"Saving test result to JSON: {test_result}")
     set_request_context(request_id=request_id, user_email=email)
     
     logger.info(
@@ -375,6 +375,60 @@ async def get_user_learning_recommendations(email: str) -> str:
         )
         
         return f"ERROR: {str(e)}"
+
+
+@function_tool
+async def get_appropriate_greeting() -> str:
+    """
+    Get the appropriate time-based greeting for the current time.
+    
+    This function determines the most suitable greeting (Good morning, 
+    Good afternoon, Good evening) based on the current time of day.
+    
+    Returns:
+        A string containing the appropriate greeting
+    """
+    request_id = generate_request_id()
+    set_request_context(request_id=request_id)
+    
+    try:
+        from datetime import datetime
+        
+        # Get current time (local time)
+        current_time = datetime.now()
+        hour = current_time.hour
+        
+        # Determine appropriate greeting based on time
+        if 5 <= hour < 12:
+            greeting = "Good morning"
+        elif 12 <= hour < 17:
+            greeting = "Good afternoon"
+        elif 17 <= hour < 21:
+            greeting = "Good evening"
+        else:
+            # Late night/early morning
+            greeting = "Good evening"
+        
+        logger.info(
+            f"Generated time-based greeting: {greeting}",
+            extra={"extra_fields": {
+                "current_hour": hour,
+                "greeting": greeting,
+                "current_time": current_time.isoformat()
+            }}
+        )
+        
+        return greeting
+        
+    except Exception as e:
+        logger.error(
+            "Error generating appropriate greeting",
+            extra={"extra_fields": {"error": str(e)}},
+            exc_info=True
+        )
+        
+        # Fallback to a safe default
+        return "Good day"
 
 
 # Legacy compatibility functions (to be removed eventually)

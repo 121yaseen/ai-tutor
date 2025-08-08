@@ -19,8 +19,8 @@ from src.tools.agent_tools_new import (
 from src.services.student_service import StudentService
 from src.services.question_service import get_question_service
 from src.repositories.student_repository import StudentRepository
-from src.models.student import StudentProfile, TestResult
-from src.models.base import DifficultyLevel
+from src.models.student import TestResult, IELTSScores, TestFeedback
+from src.models.base import DifficultyLevel, TestStatus
 from src.core.container import get_student_service, reset_container
 
 
@@ -377,9 +377,6 @@ class TestRepositoryIntegration:
         assert found_student.email == unique_test_email
         
         # Test updating (add test result)
-        from src.models.student import TestResult, IELTSScores, TestFeedback
-        from src.models.base import TestStatus
-        
         test_result = TestResult(
             test_number=1,
             difficulty_level=DifficultyLevel.INTERMEDIATE,

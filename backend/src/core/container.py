@@ -5,11 +5,10 @@ This module provides a simple but effective dependency injection system
 for better testability and loose coupling between components.
 """
 
-from typing import Dict, Any, Type, TypeVar, Callable, Optional
+from typing import Dict, Any, TypeVar, Callable, Optional
 from functools import lru_cache
 import threading
 
-from .config import settings
 from .logging import get_logger
 
 logger = get_logger(__name__)
@@ -36,7 +35,6 @@ class Container:
         from ..repositories.student_repository import StudentRepository
         from ..repositories.user_repository import UserRepository
         from ..repositories.profile_repository import ProfileRepository
-        from ..services.student_service import StudentService
         
         # Register database connection as singleton
         self.register_singleton("db_connection", lambda: get_db_connection())

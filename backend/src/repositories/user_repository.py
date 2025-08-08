@@ -11,7 +11,6 @@ from psycopg2 import sql
 from ..database.base import BaseRepository, get_db_connection
 from ..core.logging import get_logger, log_performance
 from ..core.exceptions import (
-    user_not_found,
     database_error,
     validation_error,
     DatabaseException

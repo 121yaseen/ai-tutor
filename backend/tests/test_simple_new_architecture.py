@@ -5,15 +5,12 @@ This test verifies that the new models, services, and core components
 can be imported and instantiated correctly.
 """
 
-import pytest
 from unittest.mock import Mock
 
 def test_imports():
     """Test that all new architecture components can be imported."""
     # Test core components
-    from src.core.exceptions import BusinessLogicException, ValidationException
-    from src.models.base import BaseEntityModel, DifficultyLevel, TestStatus
-    from src.models.student import StudentProfile, TestResult, IELTSScores
+    from src.models.base import DifficultyLevel, TestStatus
     
     # Test that enums work
     assert DifficultyLevel.BASIC == "basic"

@@ -5,24 +5,20 @@ This module provides the foundation for all database operations with proper
 connection pooling, transaction management, and comprehensive error handling.
 """
 
-import asyncio
 import time
 from abc import ABC, abstractmethod
-from contextlib import asynccontextmanager, contextmanager
+from contextlib import contextmanager
 from typing import Optional, Dict, Any, List, Union, Type, TypeVar, Generic
 import psycopg2
 import psycopg2.pool
-from psycopg2.extras import RealDictCursor, DictCursor
+from psycopg2.extras import RealDictCursor
 from psycopg2 import sql
-import orjson
 
 from ..core.config import settings
 from ..core.logging import get_logger, performance_logger, log_performance
 from ..core.exceptions import (
-    DatabaseException, 
     connection_error, 
-    database_error,
-    ErrorCode
+    database_error
 )
 
 # Type variable for model classes

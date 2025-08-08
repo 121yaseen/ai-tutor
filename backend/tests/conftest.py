@@ -9,9 +9,8 @@ import pytest
 import asyncio
 import os
 import sys
-from unittest.mock import Mock, MagicMock
+from unittest.mock import Mock
 from dotenv import load_dotenv
-from typing import Optional, Generator
 
 # Load environment variables
 load_dotenv()
@@ -42,7 +41,6 @@ def pytest_configure(config):
 @pytest.fixture(scope="session", autouse=True)
 def setup_test_environment():
     """Setup test environment and validate configuration."""
-    from src.core.config import settings
     
     # Set test environment
     os.environ["ENVIRONMENT"] = "testing"
@@ -220,23 +218,20 @@ def sample_test_result_dict():
             }
         },
         "detailed_scores": {
-            "fluency_coherence": 6.5,
-            "lexical_resource": 7.0,
-            "grammatical_accuracy": 6.0,
+            "fluency": 6.5,
+            "grammar": 6.0,
+            "vocabulary": 7.0,
             "pronunciation": 7.0
         },
         "band_score": 6.5,
         "feedback": {
-            "strengths": ["Good vocabulary", "Clear pronunciation"],
-            "improvements": ["Use more complex grammar", "Reduce hesitation"],
-            "detailed_feedback": {
-                "fluency_coherence": "Good flow but some hesitation",
-                "lexical_resource": "Strong vocabulary range",
-                "grammatical_accuracy": "Some complex structures needed",
-                "pronunciation": "Clear and easy to understand"
-            },
-            "examiner_notes": "Overall good performance with room for improvement"
+            "fluency": "Good flow but some hesitation",
+            "grammar": "Some complex structures needed",
+            "vocabulary": "Strong vocabulary range",
+            "pronunciation": "Clear and easy to understand"
         },
+        "strengths": ["Good vocabulary", "Clear pronunciation"],
+        "improvements": ["Use more complex grammar", "Reduce hesitation"],
         "test_status": "completed",
         "difficulty_level": "intermediate"
     }
