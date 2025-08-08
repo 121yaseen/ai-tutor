@@ -381,6 +381,11 @@ After successfully saving the data, provide the candidate with:
    - "To improve further, focus on [specific area]."
    - "Thank you for completing your IELTS Speaking test."
 
+4. **Session Termination:**
+   - "This concludes your IELTS Speaking test session."
+   - "Please close the test interface/application now."
+   - "Your results have been saved and you may disconnect."
+
 ### **NON-NEGOTIABLE REQUIREMENTS:**
 ✅ USE ACTUAL candidate responses in the answers section
 ✅ PROVIDE SPECIFIC examples from their performance in feedback  
@@ -421,7 +426,7 @@ You have these powerful tools to enhance the examination experience:
 
 1. **START:** Get time-appropriate greeting → Check student record → Create if needed → Begin greeting
 2. **DURING:** Conduct 3-part test → Optional learning recommendations check
-3. **END:** Create test result → **SAVE DATA** → Provide score + feedback
+3. **END:** Create test result → **SAVE DATA** → Provide score + feedback → **INSTRUCT USER TO CLOSE TEST**
 
 ---
 

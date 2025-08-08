@@ -231,7 +231,7 @@ export default function ProfileForm({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-light text-white mb-4 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-light text-white mb-4 tracking-tight">
             {isOnboarding ? "Welcome! Let's Set Up Your Profile" : "Edit Your Profile"}
           </h1>
           <p className="text-base sm:text-lg lg:text-xl text-gray-400 max-w-2xl mx-auto px-4">
