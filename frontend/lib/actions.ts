@@ -12,10 +12,23 @@ export async function getProfile() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user || !user.email) return null
 
-  const profile = await prisma.profile.findUnique({
-    where: { email: user.email },
-  })
-  return profile
+  try {
+    const profile = await prisma.profile.findUnique({
+      where: { email: user.email },
+    })
+    return profile
+  } catch (error) {
+    console.error('Error fetching profile:', error)
+    // Retry once if it's a connection issue
+    if (error instanceof Error && error.message.includes('prepared statement')) {
+      await prisma.$disconnect()
+      const profile = await prisma.profile.findUnique({
+        where: { email: user.email },
+      })
+      return profile
+    }
+    throw error
+  }
 }
 
 // Action to update the profile in your DB
@@ -42,11 +55,26 @@ export async function updateProfile(formData: Partial<Profile>) {
     onboarding_presented: formData.onboarding_presented,
   }
 
-  await prisma.profile.upsert({
-    where: { email: user.email },
-    update: cleanData,
-    create: { ...cleanData, id: user.id, email: user.email },
-  })
+  try {
+    await prisma.profile.upsert({
+      where: { email: user.email },
+      update: cleanData,
+      create: { ...cleanData, id: user.id, email: user.email },
+    })
+  } catch (error) {
+    console.error('Error updating profile:', error)
+    // Retry once if it's a connection issue
+    if (error instanceof Error && error.message.includes('prepared statement')) {
+      await prisma.$disconnect()
+      await prisma.profile.upsert({
+        where: { email: user.email },
+        update: cleanData,
+        create: { ...cleanData, id: user.id, email: user.email },
+      })
+    } else {
+      throw error
+    }
+  }
 }
 
 // Action to get student history from your DB
