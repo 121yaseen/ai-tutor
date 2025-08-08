@@ -9,8 +9,35 @@ import { JsonValue } from '@prisma/client/runtime/library'
 // Action to get user profile from your DB
 export async function getProfile() {
   const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user || !user.email) return null
+  const { data: { user }, error } = await supabase.auth.getUser()
+  
+  // Detailed logging for debugging
+  console.log('🔍 getProfile - Auth getUser result:', {
+    hasUser: !!user,
+    user: user ? {
+      id: user.id,
+      email: user.email,
+      user_metadata: user.user_metadata,
+      identities: user.identities,
+      app_metadata: user.app_metadata,
+      created_at: user.created_at,
+      updated_at: user.updated_at
+    } : null,
+    error: error ? {
+      message: error.message,
+      status: error.status
+    } : null
+  })
+  
+  if (!user) {
+    console.log('❌ getProfile - No user found')
+    return null
+  }
+  
+  if (!user.email) {
+    console.error('❌ getProfile - User missing email, full object:', JSON.stringify(user, null, 2))
+    return null
+  }
 
   try {
     const profile = await prisma.profile.findUnique({
@@ -44,8 +71,40 @@ export async function getProfile() {
 // Action to update the profile in your DB
 export async function updateProfile(formData: Partial<Profile>) {
   const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user || !user.email) throw new Error('User not authenticated or missing email')
+  const { data: { user }, error } = await supabase.auth.getUser()
+  
+  // Detailed logging for debugging
+  console.log('🔍 updateProfile - Auth getUser result:', {
+    hasUser: !!user,
+    user: user ? {
+      id: user.id,
+      email: user.email,
+      user_metadata: user.user_metadata,
+      identities: user.identities,
+      app_metadata: user.app_metadata,
+      created_at: user.created_at,
+      updated_at: user.updated_at
+    } : null,
+    error: error ? {
+      message: error.message,
+      status: error.status
+    } : null,
+    formData: {
+      full_name: formData.full_name,
+      onboarding_completed: formData.onboarding_completed,
+      onboarding_presented: formData.onboarding_presented
+    }
+  })
+  
+  if (!user) {
+    console.error('❌ updateProfile - User not authenticated')
+    throw new Error('User not authenticated')
+  }
+  
+  if (!user.email) {
+    console.error('❌ updateProfile - User missing email, full object:', JSON.stringify(user, null, 2))
+    throw new Error('User email is required but not available')
+  }
 
   // Create a clean object without any extra fields
   const cleanData = {
@@ -66,34 +125,48 @@ export async function updateProfile(formData: Partial<Profile>) {
   }
 
   try {
+    console.log('🔍 updateProfile - Starting database operations with:', {
+      userId: user.id,
+      userEmail: user.email,
+      cleanDataKeys: Object.keys(cleanData)
+    })
+    
     // First, try to find the profile by ID (most reliable for auth)
+    console.log('🔍 updateProfile - Looking for profile by ID:', user.id)
     let profile = await prisma.profile.findUnique({
       where: { id: user.id }
     })
 
     if (profile) {
+      console.log('✅ updateProfile - Found profile by ID, updating...')
       // Profile exists by ID, update it
       await prisma.profile.update({
         where: { id: user.id },
         data: { ...cleanData, email: user.email } // Ensure email is updated too
       })
+      console.log('✅ updateProfile - Successfully updated profile by ID')
     } else {
+      console.log('🔍 updateProfile - No profile found by ID, checking by email:', user.email)
       // No profile by ID, check if one exists by email
       profile = await prisma.profile.findUnique({
         where: { email: user.email }
       })
       
       if (profile) {
+        console.log('✅ updateProfile - Found profile by email, updating ID...')
         // Profile exists by email but different ID, update the ID
         await prisma.profile.update({
           where: { email: user.email },
           data: { ...cleanData, id: user.id }
         })
+        console.log('✅ updateProfile - Successfully updated profile by email')
       } else {
+        console.log('🆕 updateProfile - No profile found, creating new one...')
         // No profile exists, create a new one
         await prisma.profile.create({
           data: { ...cleanData, id: user.id, email: user.email }
         })
+        console.log('✅ updateProfile - Successfully created new profile')
       }
     }
   } catch (error) {
