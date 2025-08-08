@@ -7,13 +7,12 @@ serialization, and common functionality for scalable applications.
 
 import json
 from datetime import datetime, timezone
-from typing import Optional, Dict, Any, List, Union, Type, TypeVar
-from uuid import UUID, uuid4
-from pydantic import BaseModel, Field, validator, root_validator, ConfigDict
+from typing import Optional, Dict, Any, Type, TypeVar
+from pydantic import BaseModel, Field, ConfigDict
 from enum import Enum
 
 from ..core.logging import get_logger
-from ..core.exceptions import validation_error, ValidationException
+from ..core.exceptions import validation_error
 
 logger = get_logger(__name__)
 
@@ -21,7 +20,7 @@ logger = get_logger(__name__)
 T = TypeVar('T', bound='BaseEntityModel')
 
 
-class TimestampMixin(BaseModel):
+class TimestampMixin:
     """Mixin for models that need timestamp tracking."""
     
     created_at: Optional[datetime] = Field(
@@ -38,7 +37,7 @@ class TimestampMixin(BaseModel):
         self.updated_at = datetime.now(timezone.utc)
 
 
-class BaseEntityModel(BaseModel):
+class BaseEntityModel(BaseModel, TimestampMixin):
     """
     Base model class for all domain entities.
     

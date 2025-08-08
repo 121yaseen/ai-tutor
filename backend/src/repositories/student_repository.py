@@ -76,7 +76,7 @@ class StudentRepository(BaseRepository[StudentProfile]):
                 self.logger.debug(f"Student not found: {email}")
                 return None
             
-            # Parse history JSON
+            # Parse history JSON; tolerate both canonical and external-flat formats
             history_data = result.get('history', [])
             if isinstance(history_data, str):
                 try:
@@ -86,6 +86,88 @@ class StudentRepository(BaseRepository[StudentProfile]):
             elif not isinstance(history_data, list):
                 history_data = []
             
+            # Normalize history entries saved in external format back to canonical model-friendly dicts
+            def _to_canonical(entry: Any) -> Any:
+                if not isinstance(entry, dict):
+                    return entry
+
+                try:
+                    canonical: Dict[str, Any] = {}
+
+                    # Basic fields
+                    if 'band_score' in entry:
+                        canonical['band_score'] = entry['band_score']
+                    if 'test_number' in entry:
+                        canonical['test_number'] = entry['test_number']
+                    if 'test_date' in entry:
+                        canonical['test_date'] = entry['test_date']
+
+                    # detailed_scores
+                    ds = entry.get('detailed_scores') or {}
+                    if isinstance(ds, dict):
+                        canonical['detailed_scores'] = {
+                            'fluency': ds.get('fluency'),
+                            'vocabulary': ds.get('vocabulary'),
+                            'grammar': ds.get('grammar'),
+                            'pronunciation': ds.get('pronunciation'),
+                        }
+
+                    # feedback (merge categories and strengths/improvements)
+                    fb_detailed: Dict[str, Any] = {}
+                    fb_cat = entry.get('feedback') or {}
+                    if isinstance(fb_cat, dict):
+                        fb_detailed = {
+                            'fluency': fb_cat.get('fluency'),
+                            'vocabulary': fb_cat.get('vocabulary'),
+                            'grammar': fb_cat.get('grammar'),
+                            'pronunciation': fb_cat.get('pronunciation'),
+                        }
+                        # drop None
+                        fb_detailed = {k: v for k, v in fb_detailed.items() if v}
+
+                    strengths = entry.get('strengths') or []
+                    improvements = entry.get('improvements') or []
+
+                    canonical['feedback'] = {
+                        'strengths': strengths,
+                        'improvements': improvements,
+                        'detailed_feedback': fb_detailed
+                    }
+
+                    # answers
+                    answers_ext = entry.get('answers') or {}
+                    if isinstance(answers_ext, dict):
+                        answers_can: Dict[str, Any] = {}
+                        p1 = answers_ext.get('Part 1')
+                        if isinstance(p1, dict):
+                            answers_can['part1'] = {
+                                'part': 'part1',
+                                'questions': p1.get('questions') or [],
+                                'responses': p1.get('responses') or [],
+                            }
+                        p2 = answers_ext.get('Part 2')
+                        if isinstance(p2, dict):
+                            answers_can['part2'] = {
+                                'part': 'part2',
+                                'topic': p2.get('topic'),
+                                'response': p2.get('response'),
+                            }
+                        p3 = answers_ext.get('Part 3')
+                        if isinstance(p3, dict):
+                            answers_can['part3'] = {
+                                'part': 'part3',
+                                'questions': p3.get('questions') or [],
+                                'responses': p3.get('responses') or [],
+                            }
+                        canonical['answers'] = answers_can
+
+                    return canonical
+                except Exception:
+                    # If anything fails, return original to keep tolerance
+                    return entry
+
+            history_data = [_to_canonical(h) for h in history_data]
+
             # Create StudentProfile
             student_data = {
                 'email': result['email'],
@@ -139,8 +221,72 @@ class StudentRepository(BaseRepository[StudentProfile]):
         # Validate student data
         student.validate_self()
         
-        # Serialize history
-        history_json = orjson.dumps([test.to_dict() for test in student.history]).decode('utf-8')
+        # Serialize history to the external structure expected by the consumer
+        def _serialize_external(item: Any) -> Dict[str, Any]:
+            if not isinstance(item, TestResult):
+                # Assume already-serialized dict
+                return item  # type: ignore[return-value]
+
+            # Map detailed scores to external keys (using simple field names)
+            detailed_scores = {
+                'fluency': item.detailed_scores.fluency,
+                'vocabulary': item.detailed_scores.vocabulary,
+                'grammar': item.detailed_scores.grammar,
+                'pronunciation': item.detailed_scores.pronunciation,
+            }
+
+            # Build feedback categories from detailed_feedback if present
+            feedback_map = {
+                'fluency': 'fluency',
+                'vocabulary': 'vocabulary',
+                'grammar': 'grammar',
+                'pronunciation': 'pronunciation',
+            }
+            feedback_categories: Dict[str, Any] = {}
+            if item.feedback and item.feedback.detailed_feedback:
+                for k, v in item.feedback.detailed_feedback.items():
+                    ext_key = feedback_map.get(k, k)
+                    feedback_categories[ext_key] = v
+
+            # Map answers to external keys
+            def _answers_external() -> Dict[str, Any]:
+                result: Dict[str, Any] = {}
+                ans = item.answers or {}
+                part1 = ans.get('part1')
+                if part1:
+                    result['Part 1'] = {
+                        'questions': part1.questions or [],
+                        'responses': part1.responses or [],
+                    }
+                part2 = ans.get('part2')
+                if part2:
+                    result['Part 2'] = {
+                        'topic': part2.topic,
+                        'response': part2.response,
+                    }
+                part3 = ans.get('part3')
+                if part3:
+                    result['Part 3'] = {
+                        'questions': part3.questions or [],
+                        'responses': part3.responses or [],
+                    }
+                return result
+
+            external = {
+                'answers': _answers_external(),
+                'feedback': feedback_categories,
+                'strengths': (item.feedback.strengths if item.feedback else []) or [],
+                'improvements': (item.feedback.improvements if item.feedback else []) or [],
+                'test_date': item.test_date.isoformat(),
+                'band_score': item.band_score,
+                'test_number': item.test_number,
+                'detailed_scores': detailed_scores,
+            }
+            return external
+
+        # Persist oldest -> newest so UI components using the last item as latest work correctly
+        history_payload = [_serialize_external(test) for test in reversed(student.history)]
+        history_json = orjson.dumps(history_payload).decode('utf-8')
         
         query = sql.SQL("""
             INSERT INTO {} (email, name, history)

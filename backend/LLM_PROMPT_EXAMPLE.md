@@ -38,9 +38,9 @@ This document provides the exact JSON structure that should be used when generat
     "[Actionable improvement 2]"
   ],
   "detailed_scores": {
-    "fluency": 6,
-    "grammar": 6,
-    "vocabulary": 7,
+    "fluency_coherence": 6,
+    "grammatical_accuracy": 6,
+    "lexical_resource": 7,
     "pronunciation": 7
   }
 }
@@ -84,9 +84,9 @@ This document provides the exact JSON structure that should be used when generat
 - Should reflect overall speaking proficiency
 
 #### `detailed_scores`
-- **fluency**: Integer score 0-9 for fluency and coherence
-- **grammar**: Integer score 0-9 for grammatical range and accuracy
-- **vocabulary**: Integer score 0-9 for lexical resource
+- **fluency_coherence**: Integer score 0-9 for fluency and coherence
+- **grammatical_accuracy**: Integer score 0-9 for grammatical range and accuracy
+- **lexical_resource**: Integer score 0-9 for lexical resource
 - **pronunciation**: Integer score 0-9 for pronunciation
 
 #### `strengths`

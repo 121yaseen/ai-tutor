@@ -66,16 +66,13 @@ from src.core.logging import (
 from src.core.exceptions import (
     IELTSExaminerException,
     configuration_error,
-    agent_error,
-    livekit_error
+    agent_error
 )
 from src.core.container import get_student_service
 from src.services.question_service import get_question_service
 from src.agents.ielts_examiner_agent_new import IELTSExaminerAgentNew
 from src.tools.agent_tools_new import (
-    initialize_session_context,
-    set_current_user_email,
-    set_current_session_id
+    initialize_session_context
 )
 
 # Load environment variables

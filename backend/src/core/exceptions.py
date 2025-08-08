@@ -95,7 +95,9 @@ class IELTSExaminerException(Exception):
     
     def __str__(self) -> str:
         """String representation of the exception."""
-        return f"{self.error_code.value}: {self.message}"
+        # Keep string output minimal and robust for tests and logging
+        # Tests expect just the human message
+        return self.message
 
 
 class DatabaseException(IELTSExaminerException):
@@ -116,6 +118,17 @@ class DatabaseException(IELTSExaminerException):
             details['table'] = table
         
         super().__init__(message, error_code, details, kwargs.get('original_exception'))
+
+
+class NotFoundException(DatabaseException):
+    """Exception for not-found resources (specialization of DatabaseException)."""
+    def __init__(
+        self,
+        message: str,
+        error_code: ErrorCode = ErrorCode.TEST_NOT_FOUND,
+        **kwargs
+    ):
+        super().__init__(message, error_code=error_code, **kwargs)
 
 
 class AuthenticationException(IELTSExaminerException):
@@ -273,7 +286,7 @@ def user_not_found(email: str) -> AuthenticationException:
 
 def student_not_found(email: str) -> DatabaseException:
     """Create a student not found exception."""
-    return DatabaseException(
+    return NotFoundException(
         message=f"Student not found: {email}",
         error_code=ErrorCode.STUDENT_NOT_FOUND,
         details={"user_email": email}
@@ -282,7 +295,7 @@ def student_not_found(email: str) -> DatabaseException:
 
 def profile_not_found(email: str) -> DatabaseException:
     """Create a profile not found exception."""
-    return DatabaseException(
+    return NotFoundException(
         message=f"Profile not found: {email}",
         error_code=ErrorCode.PROFILE_NOT_FOUND,
         details={"user_email": email}

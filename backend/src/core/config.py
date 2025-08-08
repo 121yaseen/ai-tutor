@@ -10,7 +10,6 @@ from typing import Optional, Dict, Any
 from pathlib import Path
 from pydantic import Field, validator
 from pydantic_settings import BaseSettings
-from pydantic import PostgresDsn
 from functools import lru_cache
 from dotenv import load_dotenv
 import logging

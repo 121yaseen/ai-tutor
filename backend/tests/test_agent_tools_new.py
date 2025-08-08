@@ -7,8 +7,7 @@ agent tools in isolation from database dependencies.
 
 import pytest
 import asyncio
-from unittest.mock import Mock, patch, AsyncMock
-from datetime import datetime
+from unittest.mock import Mock, patch
 
 from src.tools.agent_tools_new import (
     save_test_result_to_json,

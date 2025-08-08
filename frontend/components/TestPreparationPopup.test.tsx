@@ -114,10 +114,10 @@ describe('TestPreparationPopup', () => {
     )
 
     // Verify all checkboxes are unchecked
-    const newCheckboxes = screen.getAllByRole('button').filter(button => 
+    screen.getAllByRole('button').filter(button => 
       button.getAttribute('data-testid') !== 'x-mark-icon'
     )
-    
+
     // All checkboxes should be unchecked (no CheckCircleIcon)
     expect(screen.queryByTestId('check-circle-icon')).not.toBeInTheDocument()
   })

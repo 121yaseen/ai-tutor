@@ -3,7 +3,6 @@ Pytest configuration and shared fixtures for backend tests.
 """
 
 import pytest
-import asyncio
 import os
 import sys
 from unittest.mock import Mock

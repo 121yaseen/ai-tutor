@@ -14,7 +14,7 @@ export default async function Page() {
   // Removed onboarding check and redirect
 
   return (
-    <main className="h-full bg-gray-900">
+    <main className="h-full bg-gradient-to-b from-gray-900 via-gray-900 to-gray-950">
       <div
         data-lk-theme="default"
         className="h-full grid content-center bg-[var(--lk-bg)]"
