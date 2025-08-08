@@ -19,13 +19,23 @@ export async function getProfile() {
     return profile
   } catch (error) {
     console.error('Error fetching profile:', error)
-    // Retry once if it's a connection issue
-    if (error instanceof Error && error.message.includes('prepared statement')) {
-      await prisma.$disconnect()
-      const profile = await prisma.profile.findUnique({
-        where: { email: user.email },
-      })
-      return profile
+    // Retry once if it's a connection or prepared statement issue
+    if (error instanceof Error && (
+      error.message.includes('prepared statement') || 
+      error.message.includes('Connection') ||
+      error.message.includes('pool')
+    )) {
+      try {
+        await prisma.$disconnect()
+        await new Promise(resolve => setTimeout(resolve, 100)) // Small delay
+        const profile = await prisma.profile.findUnique({
+          where: { email: user.email },
+        })
+        return profile
+      } catch (retryError) {
+        console.error('Retry failed:', retryError)
+        throw retryError
+      }
     }
     throw error
   }
@@ -56,21 +66,78 @@ export async function updateProfile(formData: Partial<Profile>) {
   }
 
   try {
-    await prisma.profile.upsert({
-      where: { email: user.email },
-      update: cleanData,
-      create: { ...cleanData, id: user.id, email: user.email },
+    // First, try to find the profile by ID (most reliable for auth)
+    let profile = await prisma.profile.findUnique({
+      where: { id: user.id }
     })
+
+    if (profile) {
+      // Profile exists by ID, update it
+      await prisma.profile.update({
+        where: { id: user.id },
+        data: { ...cleanData, email: user.email } // Ensure email is updated too
+      })
+    } else {
+      // No profile by ID, check if one exists by email
+      profile = await prisma.profile.findUnique({
+        where: { email: user.email }
+      })
+      
+      if (profile) {
+        // Profile exists by email but different ID, update the ID
+        await prisma.profile.update({
+          where: { email: user.email },
+          data: { ...cleanData, id: user.id }
+        })
+      } else {
+        // No profile exists, create a new one
+        await prisma.profile.create({
+          data: { ...cleanData, id: user.id, email: user.email }
+        })
+      }
+    }
   } catch (error) {
     console.error('Error updating profile:', error)
-    // Retry once if it's a connection issue
-    if (error instanceof Error && error.message.includes('prepared statement')) {
-      await prisma.$disconnect()
-      await prisma.profile.upsert({
-        where: { email: user.email },
-        update: cleanData,
-        create: { ...cleanData, id: user.id, email: user.email },
-      })
+    // Retry once if it's a connection or prepared statement issue
+    if (error instanceof Error && (
+      error.message.includes('prepared statement') || 
+      error.message.includes('Connection') ||
+      error.message.includes('pool')
+    )) {
+      try {
+        await prisma.$disconnect()
+        await new Promise(resolve => setTimeout(resolve, 100)) // Small delay
+        
+        // Retry with the same logic
+        let profile = await prisma.profile.findUnique({
+          where: { id: user.id }
+        })
+
+        if (profile) {
+          await prisma.profile.update({
+            where: { id: user.id },
+            data: { ...cleanData, email: user.email }
+          })
+        } else {
+          profile = await prisma.profile.findUnique({
+            where: { email: user.email }
+          })
+          
+          if (profile) {
+            await prisma.profile.update({
+              where: { email: user.email },
+              data: { ...cleanData, id: user.id }
+            })
+          } else {
+            await prisma.profile.create({
+              data: { ...cleanData, id: user.id, email: user.email }
+            })
+          }
+        }
+      } catch (retryError) {
+        console.error('Retry failed:', retryError)
+        throw retryError
+      }
     } else {
       throw error
     }
@@ -83,10 +150,33 @@ export async function getStudentHistory(): Promise<JsonValue[] | null> {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user || !user.email) return null
 
-    const student = await prisma.student.findUnique({
-        where: { email: user.email }
-    });
-    return student?.history ? student.history as JsonValue[] : [];
+    try {
+        const student = await prisma.student.findUnique({
+            where: { email: user.email }
+        });
+        return student?.history ? student.history as JsonValue[] : [];
+    } catch (error) {
+        console.error('Error fetching student history:', error)
+        // Retry once if it's a connection or prepared statement issue
+        if (error instanceof Error && (
+            error.message.includes('prepared statement') || 
+            error.message.includes('Connection') ||
+            error.message.includes('pool')
+        )) {
+            try {
+                await prisma.$disconnect()
+                await new Promise(resolve => setTimeout(resolve, 100)) // Small delay
+                const student = await prisma.student.findUnique({
+                    where: { email: user.email }
+                });
+                return student?.history ? student.history as JsonValue[] : [];
+            } catch (retryError) {
+                console.error('Retry failed:', retryError)
+                throw retryError
+            }
+        }
+        throw error
+    }
 }
 
 // The signOutAction remains the same as it's purely for auth
