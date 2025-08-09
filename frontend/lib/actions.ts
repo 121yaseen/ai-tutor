@@ -71,39 +71,61 @@ export async function getProfile() {
     // If not found by email, try to find by user ID (handles corrupted records)
     if (!profile) {
       console.log('🔍 getProfile - Not found by email, trying by user ID...')
-      profile = await prisma.profile.findFirst({
-        where: { id: user.id },
-        select: { 
-          id: true, 
-          email: true, 
-          full_name: true, 
-          updated_at: true, 
-          first_name: true, 
-          last_name: true, 
-          phone_number: true, 
-          preparing_for: true, 
-          previously_attempted_exam: true, 
-          previous_band_score: true, 
-          exam_date: true, 
-          target_band_score: true, 
-          country: true, 
-          native_language: true, 
-          onboarding_completed: true, 
-          onboarding_presented: true, 
-          created_at: true 
+      try {
+        // Use raw query to safely handle potential null email values
+        const rawProfiles = await prisma.$queryRaw`
+          SELECT * FROM profiles WHERE id = ${user.id} LIMIT 1
+        ` as Array<{
+          id: string
+          email: string | null
+          full_name: string | null
+          updated_at: Date | null
+          first_name: string | null
+          last_name: string | null
+          phone_number: string | null
+          preparing_for: string | null
+          previously_attempted_exam: boolean | null
+          previous_band_score: number | null
+          exam_date: Date | null
+          target_band_score: number | null
+          country: string | null
+          native_language: string | null
+          onboarding_completed: boolean | null
+          onboarding_presented: boolean
+          created_at: Date
+        }>
+        
+        if (rawProfiles && rawProfiles.length > 0) {
+          const foundProfile = rawProfiles[0]
+          console.log('🔍 getProfile - Found profile by ID:', {
+            id: foundProfile.id,
+            email: foundProfile.email,
+            hasNullEmail: foundProfile.email === null
+          })
+          
+          // If the profile has a null email, update it with the correct email
+          if (foundProfile.email === null || foundProfile.email === '') {
+            console.log('🔧 getProfile - Repairing corrupted profile with null email...')
+            profile = await prisma.profile.update({
+              where: { id: user.id },
+              data: { email: userEmail }
+            })
+            console.log('✅ getProfile - Successfully repaired profile email')
+          } else {
+            // Convert raw result to proper format
+            profile = foundProfile
+          }
         }
-      })
-      
-      if (profile && profile.email === null) {
-        console.log('🔧 getProfile - Found corrupted record, will be fixed on next update')
+      } catch (rawError) {
+        console.log('⚠️ getProfile - Error with user ID lookup:', rawError)
+        profile = null
       }
     }
     
     console.log('🔍 getProfile - Database query result:', {
       hasProfile: !!profile,
       profileId: profile?.id,
-      profileEmail: profile?.email,
-      foundBy: profile ? (profile.email === userEmail ? 'email' : 'user_id') : 'not_found'
+      profileEmail: profile?.email
     })
     return profile
   } catch (error) {
