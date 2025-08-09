@@ -305,6 +305,23 @@ export default function Header() {
                   <span className="font-medium">{item.name}</span>
                 </motion.button>
               ))}
+
+              {/* Mobile Logout Button */}
+              <div className="pt-2 mt-2 border-t border-gray-800/50">
+                <motion.button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false)
+                    handleSignOut()
+                  }}
+                  className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-left transition-all duration-300 touch-manipulation text-red-400 hover:bg-red-500/10 hover:text-red-300"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: navigationItems.length * 0.1 }}
+                >
+                  <span className="text-lg">🚶‍♂️</span>
+                  <span className="font-medium">Logout</span>
+                </motion.button>
+              </div>
             </div>
           </motion.div>
         )}

@@ -57,13 +57,53 @@ export async function getProfile() {
   console.log('✅ getProfile - Email resolved:', userEmail)
 
   try {
-    const profile = await prisma.profile.findUnique({
-      where: { email: userEmail }, // Use resolved email
-    })
+    // First try to find by email (normal case)
+    let profile
+    try {
+      profile = await prisma.profile.findUnique({
+        where: { email: userEmail }, // Use resolved email
+      })
+    } catch (findError) {
+      console.log('⚠️ getProfile - Error finding by email (possible null email in DB):', findError)
+      profile = null
+    }
+    
+    // If not found by email, try to find by user ID (handles corrupted records)
+    if (!profile) {
+      console.log('🔍 getProfile - Not found by email, trying by user ID...')
+      profile = await prisma.profile.findFirst({
+        where: { id: user.id },
+        select: { 
+          id: true, 
+          email: true, 
+          full_name: true, 
+          updated_at: true, 
+          first_name: true, 
+          last_name: true, 
+          phone_number: true, 
+          preparing_for: true, 
+          previously_attempted_exam: true, 
+          previous_band_score: true, 
+          exam_date: true, 
+          target_band_score: true, 
+          country: true, 
+          native_language: true, 
+          onboarding_completed: true, 
+          onboarding_presented: true, 
+          created_at: true 
+        }
+      })
+      
+      if (profile && profile.email === null) {
+        console.log('🔧 getProfile - Found corrupted record, will be fixed on next update')
+      }
+    }
+    
     console.log('🔍 getProfile - Database query result:', {
       hasProfile: !!profile,
       profileId: profile?.id,
-      profileEmail: profile?.email
+      profileEmail: profile?.email,
+      foundBy: profile ? (profile.email === userEmail ? 'email' : 'user_id') : 'not_found'
     })
     return profile
   } catch (error) {
@@ -77,9 +117,42 @@ export async function getProfile() {
       try {
         await prisma.$disconnect()
         await new Promise(resolve => setTimeout(resolve, 100)) // Small delay
-        const profile = await prisma.profile.findUnique({
-          where: { email: userEmail }, // Use resolved email
-        })
+        // Retry with the same robust logic
+        let profile
+        try {
+          profile = await prisma.profile.findUnique({
+            where: { email: userEmail },
+          })
+        } catch (retryFindError) {
+          console.log('⚠️ getProfile (retry) - Error finding by email:', retryFindError)
+          profile = null
+        }
+        
+        if (!profile) {
+          console.log('🔍 getProfile (retry) - Not found by email, trying by user ID...')
+          profile = await prisma.profile.findFirst({
+            where: { id: user.id },
+            select: { 
+              id: true, 
+              email: true, 
+              full_name: true, 
+              updated_at: true, 
+              first_name: true, 
+              last_name: true, 
+              phone_number: true, 
+              preparing_for: true, 
+              previously_attempted_exam: true, 
+              previous_band_score: true, 
+              exam_date: true, 
+              target_band_score: true, 
+              country: true, 
+              native_language: true, 
+              onboarding_completed: true, 
+              onboarding_presented: true, 
+              created_at: true 
+            }
+          })
+        }
         return profile
       } catch (retryError) {
         console.error('Retry failed:', retryError)
@@ -175,28 +248,46 @@ export async function updateProfile(formData: Partial<Profile>) {
       cleanDataKeys: Object.keys(cleanData)
     })
     
-    // First, try to find the profile by ID (most reliable for auth)
-    console.log('🔍 updateProfile - Looking for profile by ID:', user.id)
-    let profile = await prisma.profile.findUnique({
-      where: { id: user.id }
+    // First, check if there's a record with this ID but potentially null email
+    console.log('🔍 updateProfile - Looking for profile by ID (including corrupted records):', user.id)
+    
+    // Use findFirst with ID to bypass email null constraint
+    const existingProfileById = await prisma.profile.findFirst({
+      where: { id: user.id },
+      select: { id: true, email: true }
     })
 
-    if (profile) {
-      console.log('✅ updateProfile - Found profile by ID, updating...')
-      // Profile exists by ID, update it
+    if (existingProfileById) {
+      console.log('🔍 updateProfile - Found profile by ID:', {
+        hasProfile: true,
+        currentEmail: existingProfileById.email,
+        isEmailNull: existingProfileById.email === null
+      })
+      
+      if (existingProfileById.email === null) {
+        console.log('🔧 updateProfile - Fixing corrupted record with null email...')
+      }
+      
+      // Profile exists by ID, update it (this will fix null email if present)
       await prisma.profile.update({
         where: { id: user.id },
-        data: { ...cleanData, email: userEmail } // Ensure email is updated too
+        data: { ...cleanData, email: userEmail } // Ensure email is updated
       })
       console.log('✅ updateProfile - Successfully updated profile by ID')
     } else {
       console.log('🔍 updateProfile - No profile found by ID, checking by email:', userEmail)
       // No profile by ID, check if one exists by email
-      profile = await prisma.profile.findUnique({
-        where: { email: userEmail }
-      })
+      let profileByEmail
+      try {
+        profileByEmail = await prisma.profile.findUnique({
+          where: { email: userEmail }
+        })
+      } catch (emailSearchError) {
+        console.log('⚠️ updateProfile - Error searching by email (possible null email in DB):', emailSearchError)
+        profileByEmail = null
+      }
       
-      if (profile) {
+      if (profileByEmail) {
         console.log('✅ updateProfile - Found profile by email, updating ID...')
         // Profile exists by email but different ID, update the ID
         await prisma.profile.update({
@@ -225,22 +316,32 @@ export async function updateProfile(formData: Partial<Profile>) {
         await prisma.$disconnect()
         await new Promise(resolve => setTimeout(resolve, 100)) // Small delay
         
-        // Retry with the same logic
-        let profile = await prisma.profile.findUnique({
-          where: { id: user.id }
+        // Retry with the same robust logic
+        const existingProfileById = await prisma.profile.findFirst({
+          where: { id: user.id },
+          select: { id: true, email: true }
         })
 
-        if (profile) {
+        if (existingProfileById) {
+          if (existingProfileById.email === null) {
+            console.log('🔧 updateProfile (retry) - Fixing corrupted record with null email...')
+          }
           await prisma.profile.update({
             where: { id: user.id },
             data: { ...cleanData, email: userEmail }
           })
         } else {
-          profile = await prisma.profile.findUnique({
-            where: { email: userEmail }
-          })
+          let profileByEmail
+          try {
+            profileByEmail = await prisma.profile.findUnique({
+              where: { email: userEmail }
+            })
+          } catch (emailSearchError) {
+            console.log('⚠️ updateProfile (retry) - Error searching by email:', emailSearchError)
+            profileByEmail = null
+          }
           
-          if (profile) {
+          if (profileByEmail) {
             await prisma.profile.update({
               where: { email: userEmail },
               data: { ...cleanData, id: user.id }
@@ -276,9 +377,15 @@ export async function getStudentHistory(): Promise<JsonValue[] | null> {
     if (!userEmail) return null
 
     try {
-        const student = await prisma.student.findUnique({
-            where: { email: userEmail }
-        });
+        let student
+        try {
+            student = await prisma.student.findUnique({
+                where: { email: userEmail }
+            });
+        } catch (findError) {
+            console.log('⚠️ getStudentHistory - Error finding by email (possible null email in DB):', findError)
+            student = null
+        }
         return student?.history ? student.history as JsonValue[] : [];
     } catch (error) {
         console.error('Error fetching student history:', error)
@@ -291,9 +398,15 @@ export async function getStudentHistory(): Promise<JsonValue[] | null> {
             try {
                 await prisma.$disconnect()
                 await new Promise(resolve => setTimeout(resolve, 100)) // Small delay
-                const student = await prisma.student.findUnique({
-                    where: { email: userEmail }
-                });
+                let student
+                try {
+                    student = await prisma.student.findUnique({
+                        where: { email: userEmail }
+                    });
+                } catch (retryFindError) {
+                    console.log('⚠️ getStudentHistory (retry) - Error finding by email:', retryFindError)
+                    student = null
+                }
                 return student?.history ? student.history as JsonValue[] : [];
             } catch (retryError) {
                 console.error('Retry failed:', retryError)
