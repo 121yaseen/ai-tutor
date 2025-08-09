@@ -112,8 +112,13 @@ export async function getProfile() {
             })
             console.log('✅ getProfile - Successfully repaired profile email')
           } else {
-            // Convert raw result to proper format
-            profile = foundProfile
+            // Convert raw result to proper format, ensuring email is valid
+            if (foundProfile.email) {
+              profile = foundProfile as Profile
+            } else {
+              console.log('⚠️ getProfile - Profile found but email still null, skipping')
+              profile = null
+            }
           }
         }
       } catch (rawError) {
