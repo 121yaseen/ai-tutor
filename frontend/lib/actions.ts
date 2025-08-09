@@ -74,7 +74,7 @@ export async function getProfile() {
       try {
         // Use raw query to safely handle potential null email values
         const rawProfiles = await prisma.$queryRaw`
-          SELECT * FROM profiles WHERE id = ${user.id} LIMIT 1
+          SELECT * FROM profiles WHERE id = ${user.id}::uuid LIMIT 1
         ` as Array<{
           id: string
           email: string | null
@@ -278,11 +278,12 @@ export async function updateProfile(formData: Partial<Profile>) {
     // First, check if there's a record with this ID but potentially null email
     console.log('🔍 updateProfile - Looking for profile by ID (including corrupted records):', user.id)
     
-    // Use findFirst with ID to bypass email null constraint
-    const existingProfileById = await prisma.profile.findFirst({
-      where: { id: user.id },
-      select: { id: true, email: true }
-    })
+    // Use raw query to safely check for existing profile (handles null email)
+    const rawExistingProfiles = await prisma.$queryRaw`
+      SELECT id, email FROM profiles WHERE id = ${user.id}::uuid LIMIT 1
+    ` as Array<{ id: string; email: string | null }>
+    
+    const existingProfileById = rawExistingProfiles.length > 0 ? rawExistingProfiles[0] : null
 
     if (existingProfileById) {
       console.log('🔍 updateProfile - Found profile by ID:', {
