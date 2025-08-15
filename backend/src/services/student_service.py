@@ -135,19 +135,8 @@ class StudentService:
         latest_score = None
         
         if student and student.history:
-            completed_tests = [test for test in student.history]
-            user_data["history_summary"] = [
-                {
-                    "test_number": test.test_number,
-                    "band_score": test.band_score,
-                    "test_date": test.test_date.isoformat(),
-                    "difficulty_level": test.difficulty_level.value
-                }
-                for test in completed_tests[:5]  # Last 5 tests
-            ]
+            user_data["history_summary"] = student.history
             
-            if completed_tests:
-                latest_score = completed_tests[0].band_score  # Most recent
         
         # Format instructions
         instruction_text = f"--- USER DATA ---\n{user_data}\n"
