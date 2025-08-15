@@ -135,11 +135,7 @@ class StudentService:
         latest_score = None
         
         if student and student.history:
-            completed_tests = [
-                test for test in student.history 
-                if test.test_status == TestStatus.COMPLETED
-            ]
-            
+            completed_tests = [test for test in student.history]
             user_data["history_summary"] = [
                 {
                     "test_number": test.test_number,
@@ -483,7 +479,6 @@ class StudentService:
         
         completed_tests = [
             test for test in student.history 
-            if test.test_status == TestStatus.COMPLETED
         ]
         
         if not completed_tests:
